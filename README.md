@@ -1,0 +1,2174 @@
+Perfect! ✅ I've created a comprehensive implementation guide as a markdown file with your entire HandSpeakAI codebase organized into logical, copyable sections.
+
+📋 What Was Created:
+A complete guide titled COMPLETE_IMPLEMENTATION_GUIDE.md containing:
+
+Backend (13 Parts)
+Server initialization
+File I/O operations
+All 7 API endpoints
+Server startup
+Frontend HTML (11 Parts)
+Document structure
+Navigation bar
+All 4 pages (Home, Feed, Convert, Credits)
+Modals and UI components
+Script tags
+Frontend CSS (1 Complete Block)
+All 16 CSS sections combined
+Variables, animations, responsive design
+Dark/Light mode
+Component styling
+Frontend JavaScript (1 Complete Block)
+43 functions total
+Navigation & initialization
+Feed page logic
+Convert page logic
+Gesture recognition with KNN
+Translation & text-to-speech
+Sentence building
+🎯 How to Use:
+Copy the Backend section → server.js
+Copy the HTML → index.html
+Copy the CSS into <style> tag
+Copy the JavaScript into <script> tag
+Run backend: node server.js
+Open frontend in browser
+All code flows sequentially - copy and paste in order for a complete, working application! 🚀
+
+Make these code changes?
+COMPLETE_IMPLEMENTATION_GUIDE.md
+
+md
+# HandSpeakAI - Complete Implementation Guide
+
+A comprehensive guide to building HandSpeakAI, dividing the entire codebase into logical, copyable sections for easy implementation.
+
+---
+
+## Table of Contents
+
+1. [Backend Setup (Node.js/Express)](#backend-setup)
+2. [Frontend HTML Structure](#frontend-html-structure)
+3. [Frontend Styles (CSS)](#frontend-styles)
+4. [Frontend JavaScript Logic](#frontend-javascript-logic)
+
+---
+
+## Backend Setup
+
+### Part 1: Initial Server Setup & Dependencies
+
+**File: `server.js`**
+
+```javascript
+const express = require('express')
+const cors = require('cors')
+const fs = require('fs').promises
+const path = require('path')
+
+const app = express()
+const PORT = 3000
+const DATA_FILE = path.join(__dirname, 'gesture_dataset.json')
+
+app.use(cors())
+app.use(express.json({ limit: '500mb' }))
+Part 2: File I/O Functions
+JavaScript
+async function readDataset() {
+  try {
+    const data = await fs.readFile(DATA_FILE, 'utf8')
+    return JSON.parse(data)
+  } catch {
+    const empty = {}
+    await writeDataset(empty)
+    return empty
+  }
+}
+
+async function writeDataset(dataset) {
+  await fs.writeFile(DATA_FILE, JSON.stringify(dataset, null, 2))
+}
+Part 3: POST /add - Add Examples to Dataset
+JavaScript
+app.post('/add', async (req, res) => {
+  try {
+    const { dataset: incoming } = req.body
+    if (!incoming || typeof incoming !== 'object') {
+      return res.status(400).json({ error: 'Invalid dataset' })
+    }
+
+    const existing = await readDataset()
+    let added = 0
+
+    for (const label in incoming) {
+      if (!existing[label]) existing[label] = []
+      const examples = incoming[label].filter(ex => Array.isArray(ex) && ex.length > 0)
+      existing[label].push(...examples)
+      added += examples.length
+    }
+
+    await writeDataset(existing)
+    res.json({ success: true, examplesAdded: added })
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' })
+  }
+})
+Part 4: GET /fetch - Retrieve Dataset
+JavaScript
+app.get('/fetch', async (req, res) => {
+  try {
+    const dataset = await readDataset()
+    res.json(dataset)
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' })
+  }
+})
+Part 5: GET /share - Export Dataset as File
+JavaScript
+app.get('/share', async (req, res) => {
+  try {
+    const dataset = await readDataset()
+
+    const payload = dataset
+
+    res.setHeader('Content-Type', 'application/json')
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="gesture-raw-${Date.now()}.json"`
+    )
+    res.send(JSON.stringify(payload, null, 2))
+  } catch {
+    res.status(500).json({ error: 'Server error' })
+  }
+})
+Part 6: POST /check-conflicts - Detect Label Conflicts
+JavaScript
+app.post('/check-conflicts', async (req, res) => {
+  try {
+    const { dataset: incoming } = req.body
+    if (!incoming || typeof incoming !== 'object') {
+      return res.status(400).json({ error: 'Invalid dataset' })
+    }
+
+    const existing = await readDataset()
+    const conflicts = []
+    const newLabels = []
+
+    for (const label in incoming) {
+      if (existing[label]) {
+        conflicts.push({
+          label,
+          existingCount: existing[label].length,
+          incomingCount: incoming[label].length
+        })
+      } else {
+        newLabels.push(label)
+      }
+    }
+
+    res.json({ hasConflicts: conflicts.length > 0, conflicts, newLabels })
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' })
+  }
+})
+Part 7: POST /merge-dataset - Merge with User Decisions
+JavaScript
+app.post('/merge-dataset', async (req, res) => {
+  try {
+    const { dataset: incoming, replacements = [], rejections = [] } = req.body
+    if (!incoming || typeof incoming !== 'object') {
+      return res.status(400).json({ error: 'Invalid dataset' })
+    }
+
+    const existing = await readDataset()
+    let addedCount = 0
+    let replacedCount = 0
+    let rejectedCount = 0
+
+    for (const label in incoming) {
+      const examples = incoming[label].filter(ex => Array.isArray(ex) && ex.length > 0)
+
+      if (replacements.includes(label)) {
+        existing[label] = examples
+        replacedCount += 1
+        addedCount += examples.length
+      } else if (!rejections.includes(label)) {
+        if (!existing[label]) existing[label] = []
+        existing[label].push(...examples)
+        addedCount += examples.length
+      } else {
+        rejectedCount += 1
+      }
+    }
+
+    await writeDataset(existing)
+    res.json({ addedCount, replacedCount, rejectedCount })
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' })
+  }
+})
+Part 8: POST /replace-dataset - Replace Entire Database
+JavaScript
+app.post('/replace-dataset', async (req, res) => {
+  try {
+    const { dataset: incoming } = req.body
+    if (!incoming || typeof incoming !== 'object') {
+      return res.status(400).json({ error: 'Invalid dataset' })
+    }
+
+    const clean = {}
+    for (const label in incoming) {
+      clean[label] = incoming[label].filter(ex => Array.isArray(ex) && ex.length > 0)
+    }
+
+    await writeDataset(clean)
+    res.json({ success: true })
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' })
+  }
+})
+Part 9: GET /stats - Get Dataset Statistics
+JavaScript
+app.get('/stats', async (req, res) => {
+  try {
+    const dataset = await readDataset()
+    const gestures = Object.entries(dataset)
+      .map(([label, examples]) => ({ label, count: examples.length }))
+      .sort((a, b) => b.count - a.count)
+
+    const totalExamples = gestures.reduce((s, g) => s + g.count, 0)
+
+    res.json({
+      totalGestures: gestures.length,
+      totalExamples,
+      gestures
+    })
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' })
+  }
+})
+Part 10: POST /delete-gesture - Delete Single Gesture
+JavaScript
+app.post('/delete-gesture', async (req, res) => {
+  try {
+    const { label } = req.body
+    if (!label || typeof label !== 'string') {
+      return res.status(400).json({ error: 'Invalid label' })
+    }
+
+    const dataset = await readDataset()
+    if (!dataset[label]) {
+      return res.status(404).json({ error: 'Gesture not found' })
+    }
+
+    delete dataset[label]
+    await writeDataset(dataset)
+    res.json({ success: true, deletedLabel: label })
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' })
+  }
+})
+Part 11: POST /clear-database - Clear All Data
+JavaScript
+app.post('/clear-database', async (req, res) => {
+  try {
+    await writeDataset({})
+    res.json({ success: true, message: 'Database cleared' })
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' })
+  }
+})
+Part 12: GET /health - Health Check Endpoint
+JavaScript
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() })
+})
+Part 13: Server Start
+JavaScript
+app.listen(PORT, async () => {
+  console.log(`\nGesture Backend RUNNING on http://localhost:${PORT}`)
+  console.log(`Dataset: ${DATA_FILE}\n`)
+  try {
+    const data = await readDataset()
+    const count = Object.keys(data).length
+    const examples = Object.values(data).reduce((s, a) => s + a.length, 0)
+    console.log(`Loaded: ${count} gestures, ${examples} examples`)
+  } catch {
+    console.log(`No dataset found. Starting fresh.`)
+  }
+})
+Frontend HTML Structure
+Part 1: HTML Document Head & Meta Tags
+File: index.html
+
+HTML
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HandSpeakAI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet" />
+
+  <style>
+    /* CSS will go here - see Frontend Styles section */
+  </style>
+</head>
+Part 2: Canvas Background & Navigation Bar
+HTML
+<body class="dark-mode" id="app">
+
+<!-- PARTICLE CANVAS (Home page background) -->
+<canvas id="canvas-bg"></canvas>
+
+<!-- NAVBAR -->
+<nav>
+  <span class="nav-brand" onclick="navigateTo('home')">HandSpeakAI</span>
+  <div class="nav-links">
+    <button class="nav-btn active" id="nav-home" onclick="navigateTo('home')">Home</button>
+    <button class="nav-btn" id="nav-feed" onclick="navigateTo('feed')">Feed</button>
+    <button class="nav-btn" id="nav-convert" onclick="navigateTo('convert')">Convert</button>
+    <button class="nav-btn" id="nav-credits" onclick="navigateTo('credits')">Credits</button>
+    <button class="mode-toggle" id="modeBtn" onclick="toggleMode()">☀ Light</button>
+  </div>
+</nav>
+Part 3: Home Page - Hero Section
+HTML
+<div id="page-home" class="page active">
+  <!-- Hero -->
+  <section class="section hero-section appear" style="padding-top:2rem">
+    <div class="hero-content">
+      <h1>HandSpeakAI</h1>
+      <p>
+        <b>Connecting</b>&nbsp;
+        <span class="highlight">Hands</span> <b> to </b>
+        <span class="highlight">Voices</span>
+      </p>
+      <button class="cta-button" onclick="navigateTo('convert')">Start Translating Now</button>
+      <div class="un-sdg">
+        <div class="sdg-item">
+          <div class="sdg-icon">Reduce Inequality</div>
+          <div class="sdg-title">SDG 10</div>
+          <div class="sdg-desc">Reduced Inequalities</div>
+        </div>
+        <div class="sdg-item">
+          <div class="sdg-icon">Quality Education</div>
+          <div class="sdg-title">SDG 4</div>
+          <div class="sdg-desc">Quality Education</div>
+        </div>
+      </div>
+    </div>
+  </section>
+Part 4: Home Page - Typewriter & Devices Section
+HTML
+  <!-- Typewriter + Devices -->
+  <section class="section appear" id="section2">
+    <div class="typewriter-container">
+      Works on <span id="typewriterText" class="typewriter-text"></span>
+    </div>
+    <div class="devices-wrapper">
+      <div class="device desktop appear">
+        <div class="monitor">
+          <div class="screen">
+            <div style="height:180px;background:linear-gradient(135deg,#0d1117,#161b22);display:flex;align-items:center;justify-content:center;color:var(--accent);font-weight:700;font-size:0.9rem;">Feed Data from Camera</div>
+            <div class="screen-label">
+              <h3>Feed Data from Camera</h3>
+              <p>Collect gesture data with hand, shoulder & chin tracking</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="device phone appear">
+        <div class="body">
+          <div class="notch"></div>
+          <div class="screen">
+            <div style="height:100%;background:linear-gradient(135deg,#0d1117,#21262d);display:flex;align-items:center;justify-content:center;color:var(--accent2);font-weight:700;font-size:0.75rem;padding:1rem;text-align:center;">Gesture Recognition</div>
+            <div class="screen-label" style="position:absolute;bottom:0;background:rgba(13,17,23,0.8);width:100%;">
+              <h3>Feed Data from Camera</h3>
+              <p>Mobile-ready</p>
+            </div>
+          </div>
+          <div class="home-indicator"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+Part 5: Home Page - Features Section
+HTML
+  <!-- Features -->
+  <section class="section appear section-dark" id="section3">
+    <h1>Unique Features</h1>
+    <p class="topic">1) Customizable database</p>
+    <p>Our application allows the user to add their own signs to our database and then 'train' our AI model to check for those signs, allowing them to easily communicate in their regional sign languages.</p>
+    <p class="topic">2) Translated Output</p>
+    <p>This application supports 30+ languages as different modes of outputs which can be instantly translated into, allowing the user to instantly communicate with anyone in the world.</p>
+    <p class="topic">3) Transcripts</p>
+    <p>While translating between signs and words, the user can select "Sentence mode" which allows the user to form grammatical sentences while 'signing'. They can also download a transcript — the entire conversation as a text document.</p>
+    <p class="topic">4) Database sharing</p>
+    <p>This application allows the user to save their edited database with all of their signs, transfer it between other people and then upload other people's database as well.</p>
+    <p class="topic">5) Precise and Instant.</p>
+    <p>This application returns a precise and instant output for the user, allowing them to communicate with others in ease.</p>
+
+    <div class="feature-grid" style="margin-top:2.5rem">
+      <div class="feature-card">
+        <span class="feature-icon">Custom Database</span>
+        <h3>Customizable Database</h3>
+        <p>Train AI with regional signs for personalized communication</p>
+        <div class="badge">Regional Support</div>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">Global Translation</span>
+        <h3>30+ Languages</h3>
+        <p>Instant translation to any language worldwide</p>
+        <div class="badge">Multilingual</div>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">Conversation History</span>
+        <h3>Download Transcripts</h3>
+        <p>Export full conversations as text documents</p>
+        <div class="badge">Export Ready</div>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">Share Database</span>
+        <h3>Database Sharing</h3>
+        <p>Share and import custom sign databases</p>
+        <div class="badge">Collaborative</div>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">Instant Response</span>
+        <h3>Real-time Processing</h3>
+        <p>Minimal latency with instant sign recognition</p>
+        <div class="badge">Fast AI</div>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">Low Bandwidth</span>
+        <h3>Low Bandwidth Friendly</h3>
+        <p>Works on low internet connections</p>
+        <div class="badge">Accessible</div>
+      </div>
+    </div>
+  </section>
+Part 6: Home Page - Use Cases Section
+HTML
+  <!-- Use Cases -->
+  <section class="section appear" id="section5">
+    <h1>Use Cases</h1>
+    <div class="use-cases-container">
+      <div class="use-case-card appear" style="--i:0">
+        <span class="use-case-icon">Educational Institution</span>
+        <h2>Educational Institutions</h2>
+        <p>Schools and universities can use HandSpeakAI to bridge communication gaps between hearing and deaf students. It enables interactive learning, inclusive classrooms, and effortless communication without interpreters.</p>
+      </div>
+      <div class="use-case-card appear" style="--i:1">
+        <span class="use-case-icon">Hospital</span>
+        <h2>Healthcare Services</h2>
+        <p>Medical professionals can communicate easily with patients who rely on sign language. HandSpeakAI ensures clear understanding during consultations and emergencies, improving overall healthcare delivery.</p>
+      </div>
+      <div class="use-case-card appear" style="--i:2">
+        <span class="use-case-icon">Office Building</span>
+        <h2>Corporate Meetings</h2>
+        <p>Businesses can conduct inclusive and barrier-free meetings where sign language users participate equally. HandSpeakAI promotes diversity and collaboration in any workplace setting.</p>
+      </div>
+      <div class="use-case-card appear" style="--i:3">
+        <span class="use-case-icon">Language Exchange</span>
+        <h2>Language Barriers</h2>
+        <p>HandSpeakAI enables smooth communication between people from different regions. It works efficiently even on low internet connections, offering accurate translations without complex setup.</p>
+      </div>
+    </div>
+  </section>
+Part 7: Home Page - Getting Started & Impact Sections
+HTML
+  <!-- How to Get Started -->
+  <section class="section appear" id="section4" style="background:var(--bg2)">
+    <h1 class="prcs">How to Get Started:</h1>
+    <div class="process-container">
+      <div class="process-card appear" data-count="01">
+        <h3>Translate</h3>
+        <p>To start talking with your hands, just head over to the Translate page and turn on your camera! Our AI will instantly recognize your signs and convert them to text or speech.</p>
+      </div>
+      <div class="process-card appear" data-count="02">
+        <h3>Edit &amp; Customize</h3>
+        <p>If you want to create a custom database with your own signs, just head over to the Feed page. Add, modify, and train signs specific to your regional dialect.</p>
+      </div>
+      <div class="process-card appear" data-count="03">
+        <h3>Share &amp; Collaborate</h3>
+        <p>Export your custom database and share it with friends, family, or community. Import databases from others to expand your sign vocabulary and promote inclusive communication.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Impact -->
+  <section class="impact-section section appear">
+    <h2 class="impact-title">Global Impact</h2>
+    <div class="stats-grid">
+      <div class="stat-item">
+        <div class="stat-number">70M+</div>
+        <div class="stat-label">Deaf &amp; Hard of Hearing</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number">30+</div>
+        <div class="stat-label">Output Languages</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number">90%</div>
+        <div class="stat-label">Accuracy Rate (depends upon quality of data)</div>
+      </div>
+    </div>
+  </section>
+</div>
+Part 8: Feed Page - Main Structure
+HTML
+<div id="page-feed" class="page">
+  <div class="feed-container">
+    <div class="page-header">
+      <h1>Feed Data from Camera</h1>
+      <p class="subtitle">Collect gesture data with hand, shoulder &amp; nose tracking</p>
+    </div>
+
+    <div id="feed-error" class="error-banner hidden"></div>
+    <div id="feed-init-msg" class="loading-banner">Initializing body &amp; gesture recognition...</div>
+
+    <div class="video-container">
+      <video id="feedVideo" autoplay playsinline muted class="video-feed" style="position:absolute;opacity:0;pointer-events:none;width:1px;height:1px;"></video>
+      <canvas id="feedCanvas" width="640" height="480" class="canvas-overlay" style="position:relative;width:100%;height:auto;display:block;border-radius:var(--radius);border:1px solid var(--border);"></canvas>
+    </div>
+
+    <div class="controls">
+      <input type="text" id="labelInput" class="label-input" placeholder="Enter gesture label (e.g., thumbs_up)" />
+      <button class="btn btn-primary" onclick="feedAddExample()">Add Example</button>
+      <button class="btn btn-secondary" onclick="feedSaveDataset()">Save to Backend</button>
+      <button class="btn btn-accent2" onclick="window.location.href='http://localhost:3000/share'">Save as File</button>
+      <button class="btn btn-secondary" onclick="feedLoadDataset()">Load Dataset</button>
+      <button class="btn btn-secondary" onclick="feedFetchStats()">View Stats</button>
+      <button class="btn btn-danger" onclick="feedConfirmClearDB()">Clear Database</button>
+      <input type="file" id="fileInput" accept=".json" style="display:none" onchange="feedHandleFileSelect(event)" />
+      <input type="file" id="replaceFileInput" accept=".json" style="display:none" onchange="feedHandleReplaceFileSelect(event)" />
+    </div>
+
+    <div id="feedMessage" class="message-bar hidden"></div>
+Part 9: Feed Page - Modals (Stats, Delete, Conflict, Replace)
+HTML
+    <!-- Stats modal -->
+    <div id="statsModal" class="modal-overlay hidden">
+      <div class="modal-box">
+        <h2>Dataset Statistics</h2>
+        <div class="stats-summary">
+          <div><div class="info-title">Total Gestures</div><div class="stat-val" id="statsTotalGestures">0</div></div>
+          <div><div class="info-title">Total Examples</div><div class="stat-val" id="statsTotalExamples">0</div></div>
+        </div>
+        <div class="gesture-list">
+          <h3>Gestures:</h3>
+          <div id="gestureListContent"></div>
+        </div>
+        <button class="btn btn-secondary" onclick="document.getElementById('statsModal').classList.add('hidden')">Close</button>
+      </div>
+    </div>
+
+    <!-- Delete confirm modal -->
+    <div id="deleteModal" class="modal-overlay hidden">
+      <div class="modal-box">
+        <h2>Confirm Deletion</h2>
+        <p id="deleteModalMsg"></p>
+        <div class="modal-btns">
+          <button class="btn btn-danger" onclick="feedConfirmDelete()">Yes, Delete</button>
+          <button class="btn btn-secondary" onclick="feedCancelDelete()">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Conflict modal -->
+    <div id="conflictModal" class="modal-overlay hidden">
+      <div class="modal-box">
+        <h2>Conflicting Labels Found</h2>
+        <p>The following gestures already exist. Choose whether to replace them:</p>
+        <div id="conflictList"></div>
+        <div id="newLabelsInfo" class="new-labels-info hidden"></div>
+        <div class="modal-btns">
+          <button class="btn btn-primary" onclick="feedConfirmMerge()">Confirm Merge</button>
+          <button class="btn btn-secondary" onclick="feedCancelMerge()">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Replace confirm modal -->
+    <div id="replaceModal" class="modal-overlay hidden">
+      <div class="modal-box">
+        <h2>Replace Entire Database?</h2>
+        <p>This will replace all existing data. Are you sure?</p>
+        <div class="modal-btns">
+          <button class="btn btn-danger" onclick="feedConfirmReplace()">Yes, Replace</button>
+          <button class="btn btn-secondary" onclick="document.getElementById('replaceModal').classList.add('hidden')">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="datasetInfoPanel" class="dataset-info hidden">
+      <div class="info-title">Current Session:</div>
+      <div id="datasetInfoContent"></div>
+    </div>
+  </div>
+</div>
+Part 10: Convert Page - Main Structure
+HTML
+<div id="page-convert" class="page">
+  <div class="convert-container">
+    <div class="page-header">
+      <h1>Gesture Recognition</h1>
+      <p class="subtitle">Real-time gesture detection with full body tracking</p>
+    </div>
+
+    <div id="convert-error" class="error-banner hidden"></div>
+    <div id="convert-loading" class="loading-banner">Loading gesture dataset...</div>
+
+    <div class="video-container">
+      <video id="convertVideo" autoplay playsinline muted class="video-feed" style="position:absolute;opacity:0;pointer-events:none;width:1px;height:1px;"></video>
+      <canvas id="convertCanvas" width="640" height="480" class="canvas-overlay" style="position:relative;width:100%;height:auto;display:block;border-radius:var(--radius);border:1px solid var(--border);"></canvas>
+    </div>
+
+    <div class="controls-row">
+      <div class="lang-select">
+        <label for="langSelect">Speak in:</label>
+        <select id="langSelect" class="lang-dropdown" onchange="convertSetLang(this.value)"></select>
+      </div>
+      <div class="transcript-controls">
+        <button class="btn btn-primary" onclick="convertCompleteSentence()" id="completeSentenceBtn" disabled>Complete Sentence</button>
+        <button class="btn btn-secondary" onclick="convertDownloadTranscript()" id="downloadTranscriptBtn" disabled>Download Transcript</button>
+      </div>
+    </div>
+
+    <div class="result-card">
+      <div class="result-label">Detected Gesture</div>
+      <div class="result-gesture" id="resultGesture">Waiting...</div>
+      <div class="result-confidence" id="resultConfidence">Confidence: 0%</div>
+      <div class="confidence-bar"><div class="confidence-fill" id="confidenceFill" style="width:0%"></div></div>
+
+      <div class="gesture-sentence-section">
+        <div id="sentenceEmpty" class="gesture-sentence-empty">Start gesturing to build your sentence...</div>
+        <div id="sentenceContainer" class="gesture-sentence-container" style="display:none"></div>
+      </div>
+    </div>
+
+    <div class="transcript-section">
+      <h2 class="transcript-title">Sentence List</h2>
+      <div id="transcriptEmpty" class="transcript-empty">No completed sentences yet. Build and complete your first sentence!</div>
+      <div id="completedSentencesContainer"></div>
+    </div>
+  </div>
+</div>
+Part 11: Credits Page
+HTML
+<div id="page-credits" class="page">
+  <div class="credits-container">
+    <h1 class="credits-title">Credits</h1>
+    <p class="credits-subtitle">Meet the team behind HandSpeakAI</p>
+
+    <div class="team-section">
+      <div class="developer-card">
+        <div class="dev-avatar">Ah</div>
+        <h2 class="dev-name">Aharshi</h2>
+        <p class="dev-role">Lead Developer &amp; Backend Engineer</p>
+        <p class="dev-contribution">Designed the full architecture, built the real-time gesture recognition pipeline, developed the backend API with conflict resolution, dataset management, and persistence.</p>
+        <div class="dev-skills">
+          <span>Node.js</span><span>Express</span><span>MediaPipe</span><span>System Design</span><span>Typescript</span>
+        </div>
+      </div>
+      <div class="developer-card">
+        <div class="dev-avatar">Ar</div>
+        <h2 class="dev-name">Arush</h2>
+        <p class="dev-role">Frontend Developer</p>
+        <p class="dev-contribution">Crafted the responsive UI, implemented drag-and-drop sentence building, real-time translation, speech synthesis.</p>
+        <div class="dev-skills">
+          <span>React</span><span>CSS3</span><span>Web Speech API</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="libraries-section">
+      <h2 class="section-title">Backend Libraries &amp; Tools</h2>
+      <div class="libraries-grid">
+        <div class="lib-item"><strong>Express.js</strong> - Web server framework</div>
+        <div class="lib-item"><strong>CORS</strong> - Cross-origin resource sharing</div>
+        <div class="lib-item"><strong>Body-Parser</strong> - JSON request parsing</div>
+        <div class="lib-item"><strong>fs/promises</strong> - File system operations</div>
+        <div class="lib-item"><strong>path</strong> - File path utilities</div>
+      </div>
+    </div>
+
+    <div class="libraries-section">
+      <h2 class="section-title">Frontend Libraries</h2>
+      <div class="libraries-grid">
+        <div class="lib-item"><strong>@mediapipe/tasks-vision</strong> - Hand &amp; pose detection</div>
+        <div class="lib-item"><strong>React Router</strong> - Client-side routing</div>
+        <div class="lib-item"><strong>Web Speech API</strong> - Text-to-speech</div>
+        <div class="lib-item"><strong>Google Translate API (unofficial)</strong> - Real-time translation</div>
+        <div class="lib-item"><strong>LanguageTool API</strong> - Grammar correction</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  import {
+    HandLandmarker,
+    PoseLandmarker,
+    FilesetResolver
+  } from 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.mjs';
+Part 12: Script Closing Tag
+HTML
+</script>
+</body>
+</html>
+Frontend Styles
+Complete CSS for <style> tag
+CSS
+/* ═══════════════════════════════ RESET & ROOT ═══════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0d1117;
+  --bg2: #161b22;
+  --bg3: #21262d;
+  --fg: #e6edf3;
+  --fg2: #8b949e;
+  --accent: #00ff88;
+  --accent2: #00ccff;
+  --accent3: #ff6b6b;
+  --border: #30363d;
+  --card: #161b22;
+  --radius: 12px;
+  --font-mono: 'Space Mono', monospace;
+  --font-sans: 'Syne', sans-serif;
+}
+.light-mode {
+  --bg: #f4f6f9;
+  --bg2: #ffffff;
+  --bg3: #e8ecf0;
+  --fg: #1a1a2e;
+  --fg2: #555f6e;
+  --border: #d0d7de;
+  --card: #ffffff;
+}
+
+html { scroll-behavior: smooth; }
+body {
+  font-family: var(--font-sans);
+  background: var(--bg);
+  color: var(--fg);
+  min-height: 100vh;
+  transition: background 0.3s, color 0.3s;
+  overflow-x: hidden;
+}
+
+/* ═══════════════════════════════ NAVBAR ═══════════════════════════════ */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 2rem; height: 60px;
+  background: rgba(13,17,23,0.85);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  transition: background 0.3s;
+}
+.light-mode nav { background: rgba(244,246,249,0.9); }
+.nav-brand {
+  font-family: var(--font-sans); font-weight: 800; font-size: 1.2rem;
+  color: var(--accent); letter-spacing: 0.05em; cursor: pointer;
+  text-decoration: none;
+}
+.nav-links { display: flex; gap: 0.25rem; align-items: center; }
+.nav-btn {
+  background: none; border: none; cursor: pointer;
+  font-family: var(--font-sans); font-size: 0.875rem; font-weight: 600;
+  color: var(--fg2); padding: 6px 14px; border-radius: 8px;
+  transition: all 0.2s; letter-spacing: 0.02em;
+}
+.nav-btn:hover, .nav-btn.active { color: var(--fg); background: var(--bg3); }
+.nav-btn.active { color: var(--accent); }
+.mode-toggle {
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: 20px; padding: 5px 12px; cursor: pointer;
+  font-size: 0.8rem; color: var(--fg2); font-family: var(--font-sans);
+  transition: all 0.2s; white-space: nowrap;
+}
+.mode-toggle:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ═══════════════════════════════ PAGES ═══════════════════════════════ */
+.page { display: none; padding-top: 60px; min-height: 100vh; }
+.page.active { display: block; }
+
+/* ═══════════════════════════════ HOME PAGE ═══════════════════════════════ */
+#canvas-bg {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  z-index: 0; pointer-events: none;
+}
+#page-home { position: relative; }
+#page-home > * { position: relative; z-index: 1; }
+
+.section {
+  min-height: 100vh; display: flex; flex-direction: column;
+  justify-content: center; align-items: center;
+  padding: 5rem 2rem; text-align: center;
+}
+
+/* Hero */
+.hero-section { min-height: calc(100vh - 60px); padding-top: 0; }
+.hero-section h1 {
+  font-size: clamp(3rem, 8vw, 6rem); font-weight: 800;
+  letter-spacing: -0.02em; line-height: 1;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text; margin-bottom: 1rem;
+}
+.hero-section p {
+  font-size: clamp(1.1rem, 2.5vw, 1.5rem); color: var(--fg2);
+  margin-bottom: 2rem; font-weight: 400;
+}
+.hero-section .highlight { color: var(--accent); -webkit-text-fill-color: var(--accent); }
+.cta-button {
+  display: inline-block; padding: 14px 36px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: #0d1117; border: none; border-radius: 30px;
+  font-family: var(--font-sans); font-size: 1rem; font-weight: 700;
+  cursor: pointer; transition: all 0.3s; letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.cta-button:hover { transform: translateY(-3px); box-shadow: 0 8px 30px rgba(0,255,136,0.4); }
+
+.un-sdg { display: flex; gap: 1rem; margin-top: 2.5rem; justify-content: center; flex-wrap: wrap; }
+.sdg-item {
+  border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 12px 20px; background: var(--card); text-align: left;
+  min-width: 140px;
+}
+.sdg-icon { font-size: 0.7rem; color: var(--fg2); text-transform: uppercase; letter-spacing: 0.1em; }
+.sdg-title { font-size: 1.1rem; font-weight: 800; color: var(--accent); margin: 2px 0; }
+.sdg-desc { font-size: 0.8rem; color: var(--fg2); }
+
+/* Appear animation */
+.appear { opacity: 0; transform: translateY(40px); transition: opacity 0.7s ease, transform 0.7s ease; }
+.appear.visible { opacity: 1; transform: translateY(0); }
+
+/* Typewriter section */
+.typewriter-container {
+  font-size: clamp(1.5rem, 4vw, 2.5rem); font-weight: 700;
+  margin-bottom: 3rem; color: var(--fg2);
+}
+.typewriter-text {
+  color: var(--accent2); border-right: 2px solid var(--accent2);
+  padding-right: 4px; min-width: 10px; display: inline-block;
+  animation: blink 0.8s step-end infinite;
+}
+@keyframes blink { 50% { border-color: transparent; } }
+
+/* Device mockups */
+.devices-wrapper { display: flex; gap: 4rem; align-items: flex-end; justify-content: center; flex-wrap: wrap; }
+.monitor {
+  width: 360px; background: #1c1c1c; border-radius: 12px 12px 0 0;
+  border: 3px solid #333; overflow: hidden;
+}
+.monitor .screen { background: var(--bg2); overflow: hidden; position: relative; }
+.monitor .screen img { width: 100%; display: block; max-height: 220px; object-fit: cover; }
+.screen-label { padding: 12px; text-align: left; }
+.screen-label h3 { font-size: 0.9rem; color: var(--accent); margin-bottom: 4px; }
+.screen-label p { font-size: 0.75rem; color: var(--fg2); }
+.phone .body {
+  width: 160px; height: 300px; background: #1c1c1c;
+  border-radius: 28px; border: 3px solid #333;
+  display: flex; flex-direction: column; overflow: hidden;
+  position: relative;
+}
+.notch {
+  width: 60px; height: 18px; background: #000;
+  border-radius: 0 0 12px 12px; margin: 0 auto;
+  flex-shrink: 0;
+}
+.phone .screen { flex: 1; overflow: hidden; position: relative; background: var(--bg2); }
+.phone .screen img { width: 100%; height: 100%; object-fit: cover; }
+.home-indicator {
+  width: 60px; height: 4px; background: #555;
+  border-radius: 2px; margin: 6px auto; flex-shrink: 0;
+}
+
+/* Section 3 - Features */
+.section-dark { background: var(--bg2); }
+.section h1 { font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 800; margin-bottom: 1.5rem; }
+.topic { font-size: 1.1rem; font-weight: 700; color: var(--accent); margin: 1.5rem 0 0.5rem; text-align: left; width: 100%; max-width: 800px; }
+.section > p { font-size: 1rem; color: var(--fg2); line-height: 1.7; max-width: 800px; text-align: left; }
+
+.feature-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1.2rem; width: 100%; max-width: 900px; margin-top: 2.5rem;
+}
+.feature-card {
+  background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 1.4rem; text-align: left; transition: all 0.3s;
+}
+.feature-card:hover { border-color: var(--accent); transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,255,136,0.15); }
+.feature-icon { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--accent2); font-weight: 700; }
+.feature-card h3 { font-size: 1rem; font-weight: 700; margin: 8px 0 6px; }
+.feature-card p { font-size: 0.85rem; color: var(--fg2); line-height: 1.5; }
+.badge {
+  display: inline-block; margin-top: 10px;
+  background: rgba(0,255,136,0.1); border: 1px solid rgba(0,255,136,0.3);
+  color: var(--accent); font-size: 0.7rem; font-weight: 700;
+  padding: 3px 10px; border-radius: 20px; letter-spacing: 0.05em;
+}
+
+/* Use cases */
+.use-cases-container {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1.5rem; width: 100%; max-width: 1000px; margin-top: 2rem;
+}
+.use-case-card {
+  background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 1.8rem; text-align: left; transition: all 0.3s;
+  cursor: default;
+}
+.use-case-card:hover { border-color: var(--accent2); transform: translateY(-6px); }
+.use-case-icon { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--accent2); font-weight: 700; display: block; margin-bottom: 10px; }
+.use-case-card h2 { font-size: 1.05rem; font-weight: 700; margin-bottom: 10px; }
+.use-case-card p { font-size: 0.875rem; color: var(--fg2); line-height: 1.6; }
+
+/* Process */
+.process-container {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1.5rem; max-width: 900px; margin-top: 2rem;
+}
+.process-card {
+  background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 1.8rem; text-align: left; position: relative;
+  padding-top: 3rem; transition: all 0.3s; cursor: default;
+}
+.process-card:hover { border-color: var(--accent); }
+.process-card::before {
+  content: attr(data-count); position: absolute; top: 1.2rem; left: 1.4rem;
+  font-family: var(--font-mono); font-size: 0.75rem; color: var(--accent);
+  font-weight: 700; background: rgba(0,255,136,0.1); border-radius: 6px;
+  padding: 2px 8px;
+}
+.process-card h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 10px; }
+.process-card p { font-size: 0.875rem; color: var(--fg2); line-height: 1.6; }
+
+/* Impact stats */
+.impact-section { background: var(--bg2); }
+.impact-title { font-size: 2rem; font-weight: 800; margin-bottom: 2.5rem; }
+.stats-grid { display: flex; gap: 3rem; flex-wrap: wrap; justify-content: center; }
+.stat-item { text-align: center; cursor: default; transition: transform 0.2s; }
+.stat-number { font-size: 3rem; font-weight: 800; color: var(--accent); font-family: var(--font-mono); }
+.stat-label { font-size: 0.875rem; color: var(--fg2); margin-top: 6px; max-width: 180px; }
+
+/* ═══════════════════════════════ FEED PAGE ═══════════════════════════════ */
+.feed-container, .convert-container, .credits-container {
+  min-height: calc(100vh - 60px);
+  padding: 2rem;
+  max-width: 900px; margin: 0 auto;
+}
+.page-header h1 { font-size: 2rem; font-weight: 800; margin-bottom: 0.4rem; }
+.page-header p.subtitle { font-size: 0.95rem; color: var(--fg2); margin-bottom: 1.5rem; }
+
+.video-container { position: relative; width: 640px; max-width: 100%; margin: 0 auto 1.5rem; }
+.video-feed { width: 100%; height: auto; display: block; border-radius: var(--radius); border: 1px solid var(--border); }
+.canvas-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border-radius: var(--radius); }
+
+/* Controls */
+.controls { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-bottom: 1rem; align-items: center; }
+.label-input {
+  flex: 1; min-width: 220px; padding: 10px 14px;
+  background: var(--bg2); border: 1px solid var(--border); border-radius: 8px;
+  color: var(--fg); font-family: var(--font-sans); font-size: 0.9rem;
+  outline: none; transition: border-color 0.2s;
+}
+.label-input:focus { border-color: var(--accent); }
+.label-input::placeholder { color: var(--fg2); }
+.label-input:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.btn {
+  padding: 9px 18px; border: none; border-radius: 8px; cursor: pointer;
+  font-family: var(--font-sans); font-size: 0.85rem; font-weight: 700;
+  transition: all 0.2s; white-space: nowrap; letter-spacing: 0.03em;
+}
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-primary { background: var(--accent); color: #0d1117; }
+.btn-primary:not(:disabled):hover { box-shadow: 0 4px 16px rgba(0,255,136,0.4); transform: translateY(-1px); }
+.btn-secondary { background: var(--bg3); color: var(--fg); border: 1px solid var(--border); }
+.btn-secondary:not(:disabled):hover { border-color: var(--accent2); color: var(--accent2); }
+.btn-danger { background: rgba(255,107,107,0.15); color: var(--accent3); border: 1px solid rgba(255,107,107,0.3); }
+.btn-danger:not(:disabled):hover { background: rgba(255,107,107,0.25); }
+.btn-accent2 { background: rgba(0,204,255,0.15); color: var(--accent2); border: 1px solid rgba(0,204,255,0.3); }
+.btn-accent2:not(:disabled):hover { background: rgba(0,204,255,0.25); }
+
+/* Message */
+.message-bar {
+  padding: 10px 14px; border-radius: 8px; font-size: 0.875rem;
+  font-weight: 600; margin-bottom: 1rem;
+}
+.msg-success { background: rgba(0,255,136,0.1); color: var(--accent); border: 1px solid rgba(0,255,136,0.3); }
+.msg-error { background: rgba(255,107,107,0.1); color: var(--accent3); border: 1px solid rgba(255,107,107,0.3); }
+.msg-info { background: rgba(0,204,255,0.1); color: var(--accent2); border: 1px solid rgba(0,204,255,0.3); }
+.msg-loading { background: rgba(0,204,255,0.1); color: var(--accent2); border: 1px solid rgba(0,204,255,0.3); }
+
+/* Dataset info panel */
+.dataset-info {
+  background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 1rem 1.2rem; margin-top: 1rem;
+}
+.info-title { font-weight: 700; font-size: 0.875rem; color: var(--accent2); margin-bottom: 8px; }
+.gesture-count { font-size: 0.875rem; color: var(--fg2); margin: 4px 0; font-family: var(--font-mono); }
+.total-count { font-size: 0.9rem; font-weight: 700; color: var(--fg); margin-top: 8px; font-family: var(--font-mono); }
+
+/* Modal base */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+  z-index: 2000; display: flex; align-items: center; justify-content: center;
+  backdrop-filter: blur(4px); padding: 1rem;
+}
+.modal-box {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 16px; padding: 2rem; max-width: 560px; width: 100%;
+  max-height: 90vh; overflow-y: auto;
+}
+.modal-box h2 { font-size: 1.3rem; font-weight: 800; margin-bottom: 1rem; }
+.modal-box p { color: var(--fg2); font-size: 0.9rem; line-height: 1.6; margin-bottom: 1rem; }
+
+/* Stats modal */
+.stats-summary { display: flex; gap: 2rem; margin-bottom: 1.2rem; flex-wrap: wrap; }
+.stat-row { display: flex; justify-content: space-between; }
+.stat-val { font-weight: 700; color: var(--accent); font-family: var(--font-mono); }
+.gesture-list { margin: 1rem 0; }
+.gesture-list h3 { font-size: 0.9rem; font-weight: 700; color: var(--fg2); margin-bottom: 0.7rem; }
+.gesture-stat-item {
+  display: flex; align-items: center; gap: 0.8rem;
+  padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 0.875rem;
+}
+.gesture-stat-item .gesture-label { flex: 1; font-family: var(--font-mono); }
+.gesture-stat-item .gesture-count { color: var(--fg2); }
+.delete-gesture-btn {
+  background: none; border: 1px solid rgba(255,107,107,0.4); color: var(--accent3);
+  border-radius: 6px; padding: 3px 10px; font-size: 0.75rem; cursor: pointer;
+  font-family: var(--font-sans); font-weight: 700; transition: all 0.2s;
+}
+.delete-gesture-btn:hover { background: rgba(255,107,107,0.1); }
+
+/* Conflict modal */
+.conflict-item {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 10px 0; border-bottom: 1px solid var(--border); flex-wrap: wrap; gap: 8px;
+}
+.conflict-label { font-family: var(--font-mono); font-weight: 700; font-size: 0.9rem; }
+.conflict-details { font-size: 0.8rem; color: var(--fg2); }
+.conflict-actions { display: flex; gap: 6px; }
+.action-btn {
+  padding: 5px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: 700;
+  cursor: pointer; border: 1px solid var(--border); background: var(--bg3); color: var(--fg2);
+  font-family: var(--font-sans); transition: all 0.2s;
+}
+.action-btn.replace.active { background: rgba(255,107,107,0.15); color: var(--accent3); border-color: rgba(255,107,107,0.5); }
+.action-btn.reject.active { background: rgba(0,255,136,0.1); color: var(--accent); border-color: rgba(0,255,136,0.3); }
+.new-labels-info { margin: 1rem 0; padding: 10px; background: rgba(0,255,136,0.05); border-radius: 8px; font-size: 0.875rem; color: var(--accent); }
+.modal-btns { display: flex; gap: 0.8rem; margin-top: 1.2rem; flex-wrap: wrap; }
+
+/* ═══════════════════════════════ CONVERT PAGE ═══════════════════════════════ */
+.controls-row {
+  display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; margin-bottom: 1rem;
+}
+.lang-select { display: flex; align-items: center; gap: 0.5rem; }
+.lang-select label { font-size: 0.875rem; color: var(--fg2); white-space: nowrap; }
+.lang-dropdown {
+  padding: 8px 12px; background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 8px; color: var(--fg); font-family: var(--font-sans); font-size: 0.875rem;
+  outline: none; cursor: pointer;
+}
+.lang-dropdown:focus { border-color: var(--accent); }
+.transcript-controls { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+
+/* Result card */
+.result-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1.5rem;
+}
+.result-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--fg2); margin-bottom: 0.5rem; font-weight: 700; }
+.result-gesture { font-size: 2rem; font-weight: 800; color: var(--accent); min-height: 2.5rem; font-family: var(--font-mono); }
+.result-confidence { font-size: 0.8rem; color: var(--fg2); margin: 8px 0 6px; }
+.confidence-bar { height: 4px; background: var(--bg3); border-radius: 2px; overflow: hidden; }
+.confidence-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); border-radius: 2px; transition: width 0.3s; }
+
+/* Sentence builder */
+.gesture-sentence-section { margin-top: 1.2rem; padding-top: 1.2rem; border-top: 1px solid var(--border); }
+.gesture-sentence-empty { font-size: 0.875rem; color: var(--fg2); font-style: italic; }
+.gesture-sentence-container { display: flex; flex-wrap: wrap; gap: 6px; min-height: 36px; }
+.gesture-word-item {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(0,255,136,0.1); border: 1px solid rgba(0,255,136,0.3);
+  color: var(--accent); border-radius: 20px; padding: 5px 12px;
+  font-size: 0.875rem; font-weight: 700; cursor: grab; user-select: none;
+  position: relative; transition: all 0.2s; font-family: var(--font-mono);
+}
+.gesture-word-item:active { cursor: grabbing; }
+.gesture-word-item.dragging { opacity: 0.5; transform: scale(1.05); }
+.gesture-word-delete-btn {
+  background: none; border: none; cursor: pointer; color: rgba(255,107,107,0.8);
+  font-size: 0.9rem; font-weight: 700; line-height: 1; padding: 0 2px;
+  transition: color 0.2s;
+}
+.gesture-word-delete-btn:hover { color: var(--accent3); }
+
+/* Sentence list */
+.transcript-section { margin-top: 1.5rem; }
+.transcript-title { font-size: 1.2rem; font-weight: 700; margin-bottom: 1rem; }
+.transcript-empty { color: var(--fg2); font-size: 0.875rem; font-style: italic; }
+.sentence-item {
+  padding: 14px 16px; background: var(--bg2); border-radius: 8px;
+  margin-bottom: 10px; font-size: 1rem; line-height: 1.5;
+  border: 1px solid var(--border); color: var(--fg);
+}
+.sentence-num { color: var(--fg2); margin-right: 8px; font-family: var(--font-mono); font-size: 0.85rem; }
+
+/* ═══════════════════════════════ CREDITS PAGE ═══════════════════════════════ */
+.credits-container { padding: 2rem; max-width: 860px; margin: 0 auto; }
+.credits-title { font-size: 2.5rem; font-weight: 800; margin-bottom: 0.4rem; }
+.credits-subtitle { color: var(--fg2); margin-bottom: 2.5rem; }
+
+.team-section { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; margin-bottom: 2.5rem; }
+.developer-card {
+  background: var(--card); border: 1px solid var(--border); border-radius: 16px;
+  padding: 1.8rem; text-align: left; transition: all 0.3s;
+}
+.developer-card:hover { border-color: var(--accent); transform: translateY(-4px); }
+.dev-avatar {
+  width: 56px; height: 56px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 1.1rem; color: #0d1117; margin-bottom: 1rem;
+}
+.dev-name { font-size: 1.3rem; font-weight: 800; margin-bottom: 4px; }
+.dev-role { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--accent2); font-weight: 700; margin-bottom: 12px; }
+.dev-contribution { font-size: 0.875rem; color: var(--fg2); line-height: 1.6; margin-bottom: 1rem; }
+.dev-skills { display: flex; flex-wrap: wrap; gap: 6px; }
+.dev-skills span {
+  background: var(--bg3); border: 1px solid var(--border); border-radius: 6px;
+  padding: 3px 10px; font-size: 0.75rem; color: var(--fg2); font-family: var(--font-mono);
+}
+
+.libraries-section { margin-bottom: 2rem; }
+.section-title { font-size: 1.2rem; font-weight: 700; margin-bottom: 1rem; color: var(--fg); }
+.libraries-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 0.8rem; }
+.lib-item {
+  background: var(--card); border: 1px solid var(--border); border-radius: 8px;
+  padding: 10px 14px; font-size: 0.875rem; color: var(--fg2); line-height: 1.5;
+}
+.lib-item strong { color: var(--fg); }
+
+/* ═══════════════════════════════ UTILITY ═══════════════════════════════ */
+.hidden { display: none !important; }
+.error-banner { background: rgba(255,107,107,0.1); color: var(--accent3); border: 1px solid rgba(255,107,107,0.3); border-radius: 8px; padding: 12px 14px; margin-bottom: 1rem; font-weight: 600; font-size: 0.875rem; }
+.loading-banner { background: rgba(0,204,255,0.1); color: var(--accent2); border: 1px solid rgba(0,204,255,0.3); border-radius: 8px; padding: 12px 14px; margin-bottom: 1rem; }
+
+/* ═══════════════════════════════ SCROLLBAR ═══════════════════════════════ */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--fg2); }
+
+/* Light mode adjustments */
+.light-mode .dev-avatar { color: #fff; }
+.light-mode .cta-button { color: #fff; }
+.light-mode .btn-primary { color: #fff; }
+
+@media (max-width: 600px) {
+  .devices-wrapper { gap: 1.5rem; }
+  .monitor { width: 280px; }
+  nav { padding: 0 1rem; }
+  .nav-btn { padding: 6px 8px; font-size: 0.8rem; }
+}
+Frontend JavaScript Logic
+JavaScript
+  // ─── GLOBALS ────────────────────────────────────────────────
+  let currentMode = 'dark';
+  let currentPage = 'home';
+
+  // Feed state
+  let feedHandLandmarker = null, feedPoseLandmarker = null;
+  let feedLocalDataset = {};
+  let feedExistingLabels = [];
+  let feedAnimFrame = null;
+  let feedLastVideoTime = -1;
+  let feedIsInitializing = true;
+  let feedError = false;
+  let feedConflicts = [], feedNewLabels = [], feedPendingDataset = null, feedConflictDecisions = {};
+  let feedDeleteTarget = null;
+  let feedPendingReplaceDataset = null;
+  let feedInitialized = false;
+
+  // Convert state
+  let cvtHandLandmarker = null, cvtPoseLandmarker = null;
+  let cvtDataset = {};
+  let cvtAnimFrame = null;
+  let cvtLastVideoTime = -1;
+  let cvtTranscript = [];
+  let cvtCompletedSentences = [];
+  let cvtGesture = '', cvtTranslatedGesture = '', cvtConfidence = 0;
+  let cvtDraggedItem = null;
+  let cvtHoveredWord = null;
+  let isSpeaking = false, lastSpoken = '', lastSpeakTime = 0;
+  let targetLang = 'en';
+  let frameBuffer = [];
+  let lastProcessTime = 0, lastFrameTime = 0;
+  const FRAME_INTERVAL = 100, WINDOW_DURATION = 1000;
+  let cvtInitialized = false;
+  let cvtError = false;
+
+  const PREDEFINED_GESTURES = ['hello','goodbye','yes','no','thumbs_up','peace','fist','open_palm','point','ok'];
+
+  const LANGUAGES = {
+    en:'English', es:'Spanish', fr:'French', de:'German', pt:'Portuguese',
+    it:'Italian', ru:'Russian', ar:'Arabic', nl:'Dutch', pl:'Polish',
+    tr:'Turkish', zh:'Chinese', ja:'Japanese', ko:'Korean', hi:'Hindi',
+    id:'Indonesian', sv:'Swedish', cs:'Czech', el:'Greek', hu:'Hungarian',
+    ro:'Romanian', bg:'Bulgarian', uk:'Ukrainian', fi:'Finnish', da:'Danish',
+  };
+
+  // ─── NAVIGATION ─────────────────────────────────────────────
+  window.navigateTo = function(page) {
+    window.location.href = window.location.pathname + '?page=' + page;
+  };
+
+  (function() {
+    const params = new URLSearchParams(window.location.search);
+    const page = params.get('page') || 'home';
+    const validPages = ['home', 'feed', 'convert', 'credits'];
+    const target = validPages.includes(page) ? page : 'home';
+
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('page-' + target).classList.add('active');
+    document.getElementById('nav-' + target).classList.add('active');
+
+    const canvasBg = document.getElementById('canvas-bg');
+    canvasBg.style.display = target === 'home' ? 'block' : 'none';
+
+    currentPage = target;
+
+    if (target === 'feed') { initFeed(); feedInitialized = true; }
+    if (target === 'convert') { initConvert(); cvtInitialized = true; }
+
+    window.scrollTo(0, 0);
+  })();
+
+  // ─── DARK/LIGHT MODE ────────────────────────────────────────
+  window.toggleMode = function() {
+    const body = document.getElementById('app');
+    const btn = document.getElementById('modeBtn');
+    if (currentMode === 'dark') {
+      body.className = 'light-mode';
+      btn.textContent = '☾ Dark';
+      currentMode = 'light';
+    } else {
+      body.className = 'dark-mode';
+      btn.textContent = '☀ Light';
+      currentMode = 'dark';
+    }
+    if (particleAnim) particleAnim.updateColors();
+  };
+
+  // ─── HOME: PARTICLES ────────────────────────────────────────
+  const particleAnim = (() => {
+    const canvas = document.getElementById('canvas-bg');
+    const ctx = canvas.getContext('2d');
+    let W, H, particles = [];
+
+    function resize() {
+      W = canvas.width = window.innerWidth;
+      H = canvas.height = window.innerHeight;
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    function randBetween(a, b) { return a + Math.random() * (b - a); }
+
+    function makeParticle() {
+      return {
+        x: Math.random() * W, y: Math.random() * H,
+        vx: randBetween(-0.6, 0.6), vy: randBetween(-0.6, 0.6),
+        r: randBetween(1.5, 4)
+      };
+    }
+    for (let i = 0; i < 80; i++) particles.push(makeParticle());
+
+    let particleColor = '#ffffff', lineColor = '#ffffff', bgColorVal = '#0d1117';
+
+    function updateColors() {
+      const isDark = document.getElementById('app').className !== 'light-mode';
+      particleColor = isDark ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.5)';
+      lineColor = isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.1)';
+      bgColorVal = isDark ? '#0d1117' : '#f4f6f9';
+    }
+    updateColors();
+
+    let mouse = { x: -9999, y: -9999 };
+    window.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
+    canvas.addEventListener('click', () => {
+      for (let i = 0; i < 4; i++) particles.push(makeParticle());
+      if (particles.length > 120) particles.splice(0, 4);
+    });
+
+    function draw() {
+      if (currentPage !== 'home') { requestAnimationFrame(draw); return; }
+      ctx.fillStyle = bgColorVal;
+      ctx.fillRect(0, 0, W, H);
+      for (const p of particles) {
+        p.x += p.vx; p.y += p.vy;
+        if (p.x < 0 || p.x > W) p.vx *= -1;
+        if (p.y < 0 || p.y > H) p.vy *= -1;
+
+        const dx = p.x - mouse.x, dy = p.y - mouse.y;
+        const dist = Math.sqrt(dx*dx+dy*dy);
+        if (dist < 140) {
+          ctx.strokeStyle = lineColor;
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(p.x, p.y); ctx.lineTo(mouse.x, mouse.y);
+          ctx.stroke();
+        }
+
+        ctx.fillStyle = particleColor;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+        ctx.fill();
+      }
+      for (let i = 0; i < particles.length; i++) {
+        for (let j = i+1; j < particles.length; j++) {
+          const dx = particles[i].x - particles[j].x;
+          const dy = particles[i].y - particles[j].y;
+          const d = Math.sqrt(dx*dx+dy*dy);
+          if (d < 150) {
+            ctx.strokeStyle = lineColor;
+            ctx.lineWidth = 0.7;
+            ctx.globalAlpha = 1 - d/150;
+            ctx.beginPath();
+            ctx.moveTo(particles[i].x, particles[i].y);
+            ctx.lineTo(particles[j].x, particles[j].y);
+            ctx.stroke();
+            ctx.globalAlpha = 1;
+          }
+        }
+      }
+      requestAnimationFrame(draw);
+    }
+    draw();
+    return { updateColors };
+  })();
+
+  // ─── HOME: INTERSECTION OBSERVER ────────────────────────────
+  const appearEls = document.querySelectorAll('.appear');
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) e.target.classList.add('visible');
+      else e.target.classList.remove('visible');
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+  appearEls.forEach(el => obs.observe(el));
+
+  // ─── HOME: TYPEWRITER ────────────────────────────────────────
+  (() => {
+    const el = document.getElementById('typewriterText');
+    if (!el) return;
+    const phrases = ['any device','desktop','mobile','tablet'];
+    let i=0, c=0, deleting=false, speed=100;
+    function tick() {
+      const phrase = phrases[i];
+      el.textContent = deleting ? phrase.substring(0, c-1) : phrase.substring(0, c+1);
+      deleting ? c-- : c++;
+      if (!deleting && c === phrase.length) { deleting = true; speed = 1500; }
+      else if (deleting && c === 0) { deleting = false; i = (i+1) % phrases.length; speed = 100; }
+      else { speed = deleting ? 50 : 100; }
+      setTimeout(tick, speed);
+    }
+    tick();
+  })();
+
+  // ─── POPULATE LANGUAGE DROPDOWN ────────────────────────────
+  (() => {
+    const sel = document.getElementById('langSelect');
+    Object.entries(LANGUAGES).forEach(([code, name]) => {
+      const opt = document.createElement('option');
+      opt.value = code; opt.textContent = name;
+      sel.appendChild(opt);
+    });
+  })();
+
+  // ════════════════════════════════════════════════════════════
+  //  FEED PAGE
+  // ════════════════════════════════════════════════════════════
+
+  async function initFeed() {
+    await Promise.all([initFeedLandmarkers(), enableFeedWebcam(), feedFetchCurrentLabels()]);
+  }
+
+  async function initFeedLandmarkers() {
+    try {
+      const vision = await FilesetResolver.forVisionTasks(
+        'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm'
+      );
+      feedHandLandmarker = await HandLandmarker.createFromOptions(vision, {
+        baseOptions: {
+          modelAssetPath: 'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task',
+          delegate: 'GPU',
+        },
+        runningMode: 'VIDEO', numHands: 2,
+      });
+      feedPoseLandmarker = await PoseLandmarker.createFromOptions(vision, {
+        baseOptions: {
+          modelAssetPath: 'https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task',
+          delegate: 'GPU',
+        },
+        runningMode: 'VIDEO', numPoses: 1,
+      });
+      feedIsInitializing = false;
+      document.getElementById('feed-init-msg').classList.add('hidden');
+    } catch(e) {
+      showFeedError('Failed to load recognition models. Please refresh the page.');
+    }
+  }
+
+  async function enableFeedWebcam() {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { width:640, height:480 } });
+      const video = document.getElementById('feedVideo');
+      video.srcObject = stream;
+      video.onloadedmetadata = () => video.play();
+      video.onloadeddata = () => {
+        const canvas = document.getElementById('feedCanvas');
+        canvas.width = video.videoWidth || 640;
+        canvas.height = video.videoHeight || 480;
+        let rawLoopActive = true;
+        function drawRaw() {
+          if (!rawLoopActive) return;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          requestAnimationFrame(drawRaw);
+        }
+        drawRaw();
+        function tryStartPrediction() {
+          if (feedHandLandmarker && feedPoseLandmarker) {
+            rawLoopActive = false;
+            feedPredictWebcam();
+          } else {
+            setTimeout(tryStartPrediction, 200);
+          }
+        }
+        tryStartPrediction();
+      };
+    } catch {
+      showFeedError('Cannot access camera. Please grant camera permissions and refresh.');
+    }
+  }
+
+  async function feedFetchCurrentLabels() {
+    try {
+      const res = await fetch('http://localhost:3000/fetch');
+      if (res.ok) { const d = await res.json(); feedExistingLabels = Object.keys(d); }
+    } catch {}
+  }
+
+  function showFeedError(msg) {
+    feedError = true;
+    const el = document.getElementById('feed-error');
+    el.textContent = msg; el.classList.remove('hidden');
+    document.getElementById('feed-init-msg').classList.add('hidden');
+  }
+
+  function showFeedMessage(text, type) {
+    const el = document.getElementById('feedMessage');
+    el.textContent = text;
+    el.className = 'message-bar msg-' + type;
+    el.classList.remove('hidden');
+    setTimeout(() => el.classList.add('hidden'), 4000);
+  }
+
+  function feedDrawLandmarks(handResults, poseResults) {
+    const canvas = document.getElementById('feedCanvas');
+    const video = document.getElementById('feedVideo');
+    if (!canvas || !video) return;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    if (handResults?.landmarks?.length > 0) {
+      const connections = [[0,1],[1,2],[2,3],[3,4],[0,5],[5,6],[6,7],[7,8],[5,9],[9,10],[10,11],[11,12],[9,13],[13,14],[14,15],[15,16],[13,17],[17,18],[18,19],[19,20],[0,17]];
+      ctx.strokeStyle = '#00FF00'; ctx.lineWidth = 2; ctx.fillStyle = '#FF0000';
+      for (const landmarks of handResults.landmarks) {
+        for (const [a,b] of connections) {
+          ctx.beginPath(); ctx.moveTo(landmarks[a].x*canvas.width, landmarks[a].y*canvas.height);
+          ctx.lineTo(landmarks[b].x*canvas.width, landmarks[b].y*canvas.height); ctx.stroke();
+        }
+        for (const lm of landmarks) {
+          ctx.beginPath(); ctx.arc(lm.x*canvas.width, lm.y*canvas.height, 4, 0, Math.PI*2); ctx.fill();
+        }
+      }
+    }
+    if (poseResults?.landmarks?.length > 0) {
+      const pl = poseResults.landmarks[0];
+      ctx.strokeStyle = '#00FFFF'; ctx.lineWidth = 3;
+      const s = pl[11], e = pl[12];
+      if (s && e) { ctx.beginPath(); ctx.moveTo(s.x*canvas.width,s.y*canvas.height); ctx.lineTo(e.x*canvas.width,e.y*canvas.height); ctx.stroke(); }
+      ctx.fillStyle = '#FFFF00';
+      for (const idx of [0,11,12]) { const lm=pl[idx]; if(lm){ctx.beginPath();ctx.arc(lm.x*canvas.width,lm.y*canvas.height,6,0,Math.PI*2);ctx.fill();} }
+    }
+  }
+
+  async function feedPredictWebcam() {
+    const video = document.getElementById('feedVideo');
+    if (!video || !feedHandLandmarker || !feedPoseLandmarker) return;
+    try {
+      if (video.currentTime !== feedLastVideoTime) {
+        feedLastVideoTime = video.currentTime;
+        const now = performance.now();
+        const hr = await feedHandLandmarker.detectForVideo(video, now);
+        const pr = await feedPoseLandmarker.detectForVideo(video, now);
+        feedDrawLandmarks(hr, pr);
+      }
+    } catch {}
+    feedAnimFrame = requestAnimationFrame(feedPredictWebcam);
+  }
+
+  window.feedAddExample = async function() {
+    const input = document.getElementById('labelInput');
+    const trimmedLabel = input.value.trim();
+    if (!trimmedLabel) { showFeedMessage('Please enter a label', 'error'); return; }
+    if (!feedHandLandmarker || !feedPoseLandmarker) { showFeedMessage('System not ready. Please wait...', 'error'); return; }
+
+    const isPredefined = PREDEFINED_GESTURES.includes(trimmedLabel);
+    if (!isPredefined && feedExistingLabels.includes(trimmedLabel)) {
+      showFeedMessage(`Label "${trimmedLabel}" already exists. Please rename it.`, 'error'); return;
+    }
+
+    const video = document.getElementById('feedVideo');
+    try {
+      const now = performance.now();
+      const hr = await feedHandLandmarker.detectForVideo(video, now);
+      const pr = await feedPoseLandmarker.detectForVideo(video, now);
+
+      if (!hr.landmarks || hr.landmarks.length === 0) {
+        showFeedMessage('No hand detected. Please show your hand to the camera.', 'error'); return;
+      }
+
+      const features = [];
+      for (const hl of hr.landmarks) for (const lm of hl) features.push(lm.x, lm.y, lm.z);
+      if (pr.landmarks?.length > 0) {
+        const pl = pr.landmarks[0];
+        for (const idx of [0,11,12]) {
+          const lm = pl[idx];
+          if (lm) features.push(lm.x, lm.y, lm.z, lm.visibility||0);
+          else features.push(0,0,0,0);
+        }
+      } else features.push(...Array(12).fill(0));
+
+      if (!feedLocalDataset[trimmedLabel]) feedLocalDataset[trimmedLabel] = [];
+      feedLocalDataset[trimmedLabel].push(features);
+      showFeedMessage(`Added example ${feedLocalDataset[trimmedLabel].length} for "${trimmedLabel}"`, 'success');
+      updateFeedDatasetPanel();
+    } catch { showFeedMessage('Failed to capture gesture. Please try again.', 'error'); }
+  };
+
+  function updateFeedDatasetPanel() {
+    const panel = document.getElementById('datasetInfoPanel');
+    const content = document.getElementById('datasetInfoContent');
+    if (Object.keys(feedLocalDataset).length === 0) { panel.classList.add('hidden'); return; }
+    panel.classList.remove('hidden');
+    let html = '';
+    let total = 0;
+    for (const [key, examples] of Object.entries(feedLocalDataset)) {
+      total += examples.length;
+      html += `<p class="gesture-count">${key}: ${examples.length} example${examples.length!==1?'s':''}`;
+      if (examples.length < 3) html += ` <span style="color:#ff8800;margin-left:8px;font-size:0.9em">(add ${3-examples.length} more)</span>`;
+      html += '</p>';
+    }
+    html += `<p class="total-count">Total: ${total} examples</p>`;
+    content.innerHTML = html;
+  }
+
+  window.feedSaveDataset = async function() {
+    if (Object.keys(feedLocalDataset).length === 0) { showFeedMessage('No data to save. Add some examples first.', 'error'); return; }
+    const insufficient = Object.entries(feedLocalDataset).filter(([_,v])=>v.length<3).map(([k])=>k);
+    if (insufficient.length > 0) { showFeedMessage(`Warning: "${insufficient.join('", "')}" has fewer than 3 examples.`, 'error'); return; }
+    try {
+      const res = await fetch('http://localhost:3000/add', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ dataset: feedLocalDataset })
+      });
+      if (!res.ok) throw new Error();
+      const total = Object.values(feedLocalDataset).reduce((s,a)=>s+a.length,0);
+      showFeedMessage(`Dataset saved successfully! ${total} examples stored.`, 'success');
+      feedLocalDataset = {};
+      document.getElementById('labelInput').value = '';
+      updateFeedDatasetPanel();
+      feedFetchCurrentLabels();
+    } catch { showFeedMessage('Failed to save dataset. Make sure backend server is running on port 3000.', 'error'); }
+  };
+
+  window.feedLoadDataset = function() { document.getElementById('fileInput').click(); };
+
+  window.feedHandleFileSelect = async function(e) {
+    const file = e.target.files?.[0]; if (!file) return;
+    try {
+      const text = await file.text();
+      let incoming;
+      try { const p = JSON.parse(text); incoming = p.dataset || p; } catch { showFeedMessage('Invalid JSON file.', 'error'); return; }
+      for (const label in incoming) { if (!Array.isArray(incoming[label])) { showFeedMessage(`Invalid data for "${label}"`, 'error'); return; } }
+
+      const res = await fetch('http://localhost:3000/check-conflicts', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ dataset: incoming })
+      });
+      if (!res.ok) throw new Error();
+      const result = await res.json();
+      if (result.hasConflicts) {
+        feedConflicts = result.conflicts; feedNewLabels = result.newLabels; feedPendingDataset = incoming;
+        feedConflictDecisions = {};
+        feedConflicts.forEach(c => { feedConflictDecisions[c.label] = false; });
+        renderConflictModal();
+      } else {
+        await feedMergeDirectly(incoming);
+      }
+    } catch { showFeedMessage('Failed to load dataset. Is backend running?', 'error'); }
+    e.target.value = '';
+  };
+
+  window.feedHandleReplaceFileSelect = async function(e) {
+    const file = e.target.files?.[0]; if (!file) return;
+    try {
+      const text = await file.text();
+      let incoming;
+      try { const p = JSON.parse(text); incoming = p.dataset || p; } catch { showFeedMessage('Invalid JSON file.', 'error'); return; }
+      for (const label in incoming) { if (!Array.isArray(incoming[label])) { showFeedMessage(`Invalid data for "${label}"`, 'error'); return; } }
+      feedPendingReplaceDataset = incoming;
+      document.getElementById('replaceModal').classList.remove('hidden');
+    } catch { showFeedMessage('Failed to read file.', 'error'); }
+    e.target.value = '';
+  };
+
+  async function feedMergeDirectly(incoming) {
+    try {
+      const res = await fetch('http://localhost:3000/merge-dataset', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ dataset: incoming, replacements: [], rejections: [] })
+      });
+      if (!res.ok) throw new Error();
+      showFeedMessage('Dataset loaded successfully!', 'success');
+      feedFetchCurrentLabels();
+    } catch { showFeedMessage('Failed to merge dataset.', 'error'); }
+  }
+
+  function renderConflictModal() {
+    const list = document.getElementById('conflictList');
+    list.innerHTML = feedConflicts.map(c => `
+      <div class="conflict-item" id="ci-${c.label}">
+        <div class="conflict-info">
+          <div class="conflict-label">${c.label}</div>
+          <div class="conflict-details">Existing: ${c.existingCount} | Incoming: ${c.incomingCount}</div>
+        </div>
+        <div class="conflict-actions">
+          <button class="action-btn replace ${feedConflictDecisions[c.label]?'active':''}" onclick="feedSetConflictDecision('${c.label}', true)">Replace</button>
+          <button class="action-btn reject ${!feedConflictDecisions[c.label]?'active':''}" onclick="feedSetConflictDecision('${c.label}', false)">Keep Existing</button>
+        </div>
+      </div>
+    `).join('');
+    const nl = document.getElementById('newLabelsInfo');
+    if (feedNewLabels.length > 0) { nl.textContent = 'New gestures to be added: ' + feedNewLabels.join(', '); nl.classList.remove('hidden'); }
+    else nl.classList.add('hidden');
+    document.getElementById('conflictModal').classList.remove('hidden');
+  }
+
+  window.feedSetConflictDecision = function(label, replace) {
+    feedConflictDecisions[label] = replace;
+    renderConflictModal();
+  };
+
+  window.feedConfirmMerge = async function() {
+    if (!feedPendingDataset) return;
+    const replacements = Object.entries(feedConflictDecisions).filter(([_,v])=>v).map(([k])=>k);
+    const rejections = Object.entries(feedConflictDecisions).filter(([_,v])=>!v).map(([k])=>k);
+    try {
+      const res = await fetch('http://localhost:3000/merge-dataset', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ dataset: feedPendingDataset, replacements, rejections })
+      });
+      if (!res.ok) throw new Error();
+      const r = await res.json();
+      showFeedMessage(`Dataset merged! Added: ${r.addedCount}, Replaced: ${r.replacedCount}, Rejected: ${r.rejectedCount}`, 'success');
+      feedConflicts=[]; feedNewLabels=[]; feedPendingDataset=null; feedConflictDecisions={};
+      document.getElementById('conflictModal').classList.add('hidden');
+      feedFetchCurrentLabels();
+    } catch { showFeedMessage('Failed to merge dataset.', 'error'); }
+  };
+
+  window.feedCancelMerge = function() {
+    feedConflicts=[]; feedNewLabels=[]; feedPendingDataset=null; feedConflictDecisions={};
+    document.getElementById('conflictModal').classList.add('hidden');
+    showFeedMessage('Dataset load cancelled', 'info');
+  };
+
+  window.feedFetchStats = async function() {
+    try {
+      const res = await fetch('http://localhost:3000/stats');
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+      document.getElementById('statsTotalGestures').textContent = data.totalGestures;
+      document.getElementById('statsTotalExamples').textContent = data.totalExamples;
+      const content = document.getElementById('gestureListContent');
+      content.innerHTML = data.gestures.map(g => `
+        <div class="gesture-stat-item">
+          <span class="gesture-label">${g.label}</span>
+          <span class="gesture-count">${g.count} examples</span>
+          ${!PREDEFINED_GESTURES.includes(g.label) ? `<button class="delete-gesture-btn" onclick="feedAskDeleteGesture('${g.label}')">Delete</button>` : ''}
+        </div>
+      `).join('');
+      document.getElementById('statsModal').classList.remove('hidden');
+    } catch { showFeedMessage('Failed to fetch stats. Is backend running?', 'error'); }
+  };
+
+  window.feedAskDeleteGesture = function(label) {
+    feedDeleteTarget = label;
+    document.getElementById('statsModal').classList.add('hidden');
+    document.getElementById('deleteModalMsg').textContent = `Are you sure you want to delete gesture "${label}"?`;
+    document.getElementById('deleteModal').classList.remove('hidden');
+  };
+
+  window.feedConfirmClearDB = function() {
+    feedDeleteTarget = 'database';
+    document.getElementById('deleteModalMsg').textContent = 'Are you sure you want to clear the entire database? This action cannot be undone.';
+    document.getElementById('deleteModal').classList.remove('hidden');
+  };
+
+  window.feedConfirmDelete = async function() {
+    if (feedDeleteTarget === 'database') {
+      try {
+        const res = await fetch('http://localhost:3000/clear-database', { method: 'POST' });
+        if (!res.ok) throw new Error();
+        showFeedMessage('Database cleared successfully!', 'success');
+        feedFetchCurrentLabels();
+      } catch { showFeedMessage('Failed to clear database.', 'error'); }
+    } else if (feedDeleteTarget) {
+      try {
+        const res = await fetch('http://localhost:3000/delete-gesture', {
+          method: 'POST', headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({ label: feedDeleteTarget })
+        });
+        if (!res.ok) throw new Error();
+        showFeedMessage(`Deleted gesture: ${feedDeleteTarget}`, 'success');
+        feedFetchCurrentLabels();
+      } catch { showFeedMessage('Failed to delete gesture.', 'error'); }
+    }
+    document.getElementById('deleteModal').classList.add('hidden');
+    feedDeleteTarget = null;
+  };
+
+  window.feedCancelDelete = function() {
+    document.getElementById('deleteModal').classList.add('hidden');
+    feedDeleteTarget = null;
+  };
+
+  window.feedConfirmReplace = async function() {
+    if (!feedPendingReplaceDataset) return;
+    try {
+      const res = await fetch('http://localhost:3000/replace-dataset', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ dataset: feedPendingReplaceDataset })
+      });
+      if (!res.ok) throw new Error();
+      showFeedMessage('Database replaced successfully!', 'success');
+      feedPendingReplaceDataset = null;
+      document.getElementById('replaceModal').classList.add('hidden');
+      feedFetchCurrentLabels();
+    } catch { showFeedMessage('Failed to replace dataset.', 'error'); }
+  };
+
+  document.getElementById('labelInput').addEventListener('keydown', e => { if (e.key === 'Enter') feedAddExample(); });
+
+  // ════════════════════════════════════════════════════════════
+  //  CONVERT PAGE
+  // ════════════════════════════════════════════════════════════
+
+  async function initConvert() {
+    await Promise.all([initConvertLandmarkers(), enableConvertWebcam(), cvtFetchDataset()]);
+  }
+
+  async function initConvertLandmarkers() {
+    try {
+      const vision = await FilesetResolver.forVisionTasks(
+        'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm'
+      );
+      cvtHandLandmarker = await HandLandmarker.createFromOptions(vision, {
+        baseOptions: {
+          modelAssetPath: 'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task',
+          delegate: 'GPU',
+        },
+        runningMode: 'VIDEO', numHands: 2,
+      });
+      cvtPoseLandmarker = await PoseLandmarker.createFromOptions(vision, {
+        baseOptions: {
+          modelAssetPath: 'https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task',
+          delegate: 'GPU',
+        },
+        runningMode: 'VIDEO', numPoses: 1,
+      });
+    } catch { showConvertError('Failed to load gesture model. Refresh the page.'); }
+  }
+
+  async function enableConvertWebcam() {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { width:640, height:480 } });
+      const video = document.getElementById('convertVideo');
+      video.srcObject = stream;
+      video.onloadedmetadata = () => video.play();
+      video.onloadeddata = () => {
+        const canvas = document.getElementById('convertCanvas');
+        canvas.width = video.videoWidth || 640;
+        canvas.height = video.videoHeight || 480;
+        let rawLoopActive = true;
+        function drawRaw() {
+          if (!rawLoopActive) return;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          requestAnimationFrame(drawRaw);
+        }
+        drawRaw();
+        function tryStartPrediction() {
+          if (cvtHandLandmarker && cvtPoseLandmarker) {
+            rawLoopActive = false;
+            cvtPredictWebcam();
+          } else {
+            setTimeout(tryStartPrediction, 200);
+          }
+        }
+        tryStartPrediction();
+      };
+    } catch { showConvertError('Camera access denied. Please allow camera permission.'); }
+  }
+
+  async function cvtFetchDataset() {
+    try {
+      const res = await fetch('http://localhost:3000/fetch');
+      if (!res.ok) throw new Error();
+      cvtDataset = await res.json();
+      document.getElementById('convert-loading').classList.add('hidden');
+    } catch {
+      showConvertError('Cannot reach backend (port 3000).');
+    }
+  }
+
+  function showConvertError(msg) {
+    cvtError = true;
+    const el = document.getElementById('convert-error');
+    el.textContent = msg; el.classList.remove('hidden');
+    document.getElementById('convert-loading').classList.add('hidden');
+  }
+
+  function cvtDrawLandmarks(handResults, poseResults) {
+    const canvas = document.getElementById('convertCanvas');
+    const video = document.getElementById('convertVideo');
+    if (!canvas || !video) return;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    ctx.drawImage(video,0,0,canvas.width,canvas.height);
+
+    if (handResults?.landmarks?.length > 0) {
+      const connections = [[0,1],[1,2],[2,3],[3,4],[0,5],[5,6],[6,7],[7,8],[5,9],[9,10],[10,11],[11,12],[9,13],[13,14],[14,15],[15,16],[13,17],[17,18],[18,19],[19,20],[0,17]];
+      for (const landmarks of handResults.landmarks) {
+        ctx.strokeStyle='#00FF00'; ctx.lineWidth=2;
+        for (const [a,b] of connections) {
+          ctx.beginPath(); ctx.moveTo(landmarks[a].x*canvas.width,landmarks[a].y*canvas.height);
+          ctx.lineTo(landmarks[b].x*canvas.width,landmarks[b].y*canvas.height); ctx.stroke();
+        }
+        ctx.fillStyle='#FF0000';
+        for (const lm of landmarks) { ctx.beginPath(); ctx.arc(lm.x*canvas.width,lm.y*canvas.height,4,0,Math.PI*2); ctx.fill(); }
+      }
+    }
+    if (poseResults?.landmarks?.length > 0) {
+      const pl = poseResults.landmarks[0];
+      ctx.strokeStyle='#00FFFF'; ctx.lineWidth=3;
+      const s=pl[11],e=pl[12];
+      if(s&&e){ctx.beginPath();ctx.moveTo(s.x*canvas.width,s.y*canvas.height);ctx.lineTo(e.x*canvas.width,e.y*canvas.height);ctx.stroke();}
+      ctx.fillStyle='#FFFF00';
+      for(const idx of [0,11,12]){const lm=pl[idx];if(lm){ctx.beginPath();ctx.arc(lm.x*canvas.width,lm.y*canvas.height,6,0,Math.PI*2);ctx.fill();}}
+    }
+  }
+
+  function euclideanDistance(a, b) {
+    let sum = 0; const minLen = Math.min(a.length, b.length);
+    for (let i=0;i<minLen;i++) sum += (a[i]-b[i])**2;
+    return Math.sqrt(sum);
+  }
+
+  function cvtPredictGesture(features) {
+    const k = 3;
+    const distances = [];
+    for (const label in cvtDataset) {
+      for (const example of cvtDataset[label]) {
+        distances.push({ label, dist: euclideanDistance(features, example) });
+      }
+    }
+    if (!distances.length) return null;
+    distances.sort((a,b) => a.dist-b.dist);
+    const nearest = distances.slice(0, k);
+    const votes = {};
+    for (const {label} of nearest) votes[label] = (votes[label]||0) + 1;
+    let maxVotes=0, predictedLabel='';
+    for (const label in votes) { if (votes[label] > maxVotes) { maxVotes=votes[label]; predictedLabel=label; } }
+    return { label: predictedLabel, confidence: maxVotes/k };
+  }
+
+  function cvtProcessBuffer() {
+    const now = performance.now();
+    frameBuffer = frameBuffer.filter(f => f.time > now - WINDOW_DURATION);
+    if (!frameBuffer.length) {
+      if (cvtGesture !== '') lastSpoken = '';
+      cvtGesture=''; cvtTranslatedGesture=''; cvtConfidence=0;
+      updateConvertUI();
+      return;
+    }
+    const votes = {};
+    frameBuffer.forEach(f => votes[f.label]=(votes[f.label]||0)+1);
+    let max=0, best='';
+    for (const lbl in votes) { if(votes[lbl]>max){max=votes[lbl];best=lbl;} }
+    const conf = max/frameBuffer.length;
+    cvtGesture = best; cvtConfidence = conf;
+    updateConvertUI();
+    cvtSpeak(best);
+  }
+
+  function updateConvertUI() {
+    document.getElementById('resultGesture').textContent = cvtTranslatedGesture || (cvtGesture ? cvtGesture : 'Waiting...');
+    document.getElementById('resultConfidence').textContent = `Confidence: ${Math.round(cvtConfidence*100)}%`;
+    document.getElementById('confidenceFill').style.width = `${cvtConfidence*100}%`;
+  }
+
+  async function cvtSpeak(text) {
+    if (!text) { cvtTranslatedGesture=''; updateConvertUI(); return; }
+    const now = Date.now();
+    if (isSpeaking) return;
+    if (text===lastSpoken && now-lastSpeakTime < 1500) return;
+    isSpeaking=true; lastSpoken=text; lastSpeakTime=now;
+
+    let spokenText = text;
+    if (targetLang !== 'en') {
+      spokenText = await translateText(text, targetLang);
+    }
+    cvtTranslatedGesture = spokenText;
+    updateConvertUI();
+
+    if (spokenText) {
+      const last = cvtTranscript[cvtTranscript.length-1];
+      if (!last || last.text !== spokenText) {
+        cvtTranscript.push({ id: `${Date.now()}-${Math.random()}`, text: spokenText });
+        renderSentenceBuilder();
+      }
+    }
+
+    await speakUtterance(spokenText, targetLang);
+    isSpeaking = false;
+  }
+
+  async function speakUtterance(text, lang) {
+    const langMap = { en:'en-US',es:'es-ES',fr:'fr-FR',de:'de-DE',zh:'zh-CN',ja:'ja-JP',ko:'ko-KR',hi:'hi-IN',id:'id-ID',pt:'pt-BR',it:'it-IT',ru:'ru-RU',nl:'nl-NL',sv:'sv-SE',pl:'pl-PL',tr:'tr-TR',cs:'cs-CZ',el:'el-GR',hu:'hu-HU',ro:'ro-RO',bg:'bg-BG',uk:'uk-UA',fi:'fi-FI',da:'da-DK',ar:'ar-SA' };
+    try {
+      speechSynthesis.cancel();
+      await new Promise(r => setTimeout(r,100));
+      if (!speechSynthesis.getVoices().length) {
+        await new Promise(resolve => { speechSynthesis.onvoiceschanged=()=>{speechSynthesis.onvoiceschanged=null;resolve();}; });
+      }
+      const utter = new SpeechSynthesisUtterance(text);
+      const bcp = langMap[lang] || lang;
+      utter.lang = bcp; utter.rate=0.9; utter.pitch=1; utter.volume=1;
+      const voices = speechSynthesis.getVoices();
+      const voice = voices.find(v=>v.lang.startsWith(lang)) || voices.find(v=>v.lang.startsWith(bcp.split('-')[0])) || voices[0];
+      if (voice) utter.voice = voice;
+      utter.onend = () => { isSpeaking=false; };
+      utter.onerror = () => { isSpeaking=false; };
+      speechSynthesis.speak(utter);
+    } catch { isSpeaking=false; }
+  }
+
+  async function cvtPredictWebcam() {
+    const video = document.getElementById('convertVideo');
+    if (!video||!cvtHandLandmarker||!cvtPoseLandmarker) return;
+    const now = performance.now();
+    try {
+      if (video.currentTime !== cvtLastVideoTime) {
+        cvtLastVideoTime = video.currentTime;
+        if (now - lastFrameTime >= FRAME_INTERVAL) {
+          lastFrameTime = now;
+          const hr = await cvtHandLandmarker.detectForVideo(video, now);
+          const pr = await cvtPoseLandmarker.detectForVideo(video, now);
+          cvtDrawLandmarks(hr, pr);
+
+          if (hr.landmarks?.[0] && Object.keys(cvtDataset).length) {
+            const feats = [];
+            for (const hl of hr.landmarks) for (const lm of hl) feats.push(lm.x, lm.y, lm.z);
+            if (pr.landmarks?.length > 0) {
+              const pl = pr.landmarks[0];
+              for (const idx of [0,11,12]) { const lm=pl[idx]; if(lm) feats.push(lm.x,lm.y,lm.z,lm.visibility||0); else feats.push(0,0,0,0); }
+            } else feats.push(...Array(12).fill(0));
+
+            const pred = cvtPredictGesture(feats);
+            if (pred && pred.confidence > 0.6) frameBuffer.push({ label: pred.label, time: now });
+          }
+          if (now - lastProcessTime >= WINDOW_DURATION) { lastProcessTime=now; cvtProcessBuffer(); }
+        }
+      }
+    } catch {}
+    cvtAnimFrame = requestAnimationFrame(cvtPredictWebcam);
+  }
+
+  async function translateText(text, lang) {
+    if (!text.trim() || lang==='en') return text;
+    try {
+      const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=${lang}&dt=t&q=${encodeURIComponent(text)}`);
+      const data = await res.json();
+      return data[0]?.[0]?.[0] || text;
+    } catch { return text; }
+  }
+
+  async function translateToEnglish(text) {
+    if (!text.trim()) return text;
+    try {
+      const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=en&dt=t&q=${encodeURIComponent(text)}`);
+      const data = await res.json();
+      return data[0]?.[0]?.[0] || text;
+    } catch { return text; }
+  }
+
+  async function fixGrammar(text) {
+    try {
+      const res = await fetch('https://api.languagetool.org/v2/check', {
+        method: 'POST', headers: {'Content-Type':'application/x-www-form-urlencoded'},
+        body: `text=${encodeURIComponent(text)}&language=auto`
+      });
+      if (!res.ok) return text;
+      const data = await res.json();
+      let corrected = text;
+      if (data.matches?.length > 0) {
+        const matches = data.matches.sort((a,b)=>b.offset-a.offset);
+        for (const match of matches) {
+          if (match.replacements?.length > 0) {
+            const repl = match.replacements[0].value;
+            corrected = corrected.slice(0,match.offset) + repl + corrected.slice(match.offset+match.length);
+          }
+        }
+      }
+      return corrected;
+    } catch { return text; }
+  }
+
+  window.convertSetLang = function(val) { targetLang = val; };
+
+  window.convertCompleteSentence = async function() {
+    if (!cvtTranscript.length) return;
+    const rawSentence = cvtTranscript.map(w=>w.text).join(' ');
+    const englishSentence = await translateToEnglish(rawSentence);
+    const corrected = await fixGrammar(englishSentence);
+    let finalSentence = corrected;
+    if (targetLang !== 'en') finalSentence = await translateText(corrected, targetLang);
+    cvtCompletedSentences.push(finalSentence);
+    cvtTranscript = [];
+    renderSentenceBuilder();
+    renderCompletedSentences();
+    document.getElementById('downloadTranscriptBtn').disabled = false;
+    await speakUtterance(finalSentence, targetLang);
+  };
+
+  window.convertDownloadTranscript = function() {
+    if (!cvtCompletedSentences.length) return;
+    const allText = cvtCompletedSentences.join('\n\n---\n\n');
+    const blob = new Blob([allText], {type:'text/plain'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href=url; a.download=`sentences-${new Date().toISOString().split('T')[0]}.txt`;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  function renderSentenceBuilder() {
+    const empty = document.getElementById('sentenceEmpty');
+    const container = document.getElementById('sentenceContainer');
+    const btn = document.getElementById('completeSentenceBtn');
+    if (!cvtTranscript.length) {
+      empty.style.display=''; container.style.display='none'; btn.disabled=true; return;
+    }
+    empty.style.display='none'; container.style.display='flex'; btn.disabled=false;
+    container.innerHTML = cvtTranscript.map((word,index) => `
+      <span class="gesture-word-item ${cvtDraggedItem===word.id?'dragging':''}"
+        draggable="true"
+        data-id="${word.id}"
+        onmouseenter="cvtHoverWord('${word.id}')"
+        onmouseleave="cvtUnhoverWord()">
+        ${word.text}
+        <button class="gesture-word-delete-btn" onclick="cvtDeleteWord('${word.id}')">x</button>
+      </span>
+      ${index < cvtTranscript.length-1 ? ' ' : ''}
+    `).join('');
+
+    container.querySelectorAll('.gesture-word-item').forEach(el => {
+      el.addEventListener('dragstart', e => {
+        cvtDraggedItem = el.dataset.id;
+        e.dataTransfer.effectAllowed = 'move';
+      });
+      el.addEventListener('dragover', e => {
+        e.preventDefault(); e.dataTransfer.dropEffect='move';
+        const targetId = el.dataset.id;
+        if (cvtDraggedItem && cvtDraggedItem !== targetId) {
+          const di = cvtTranscript.findIndex(w=>w.id===cvtDraggedItem);
+          const ti = cvtTranscript.findIndex(w=>w.id===targetId);
+          if (di!==-1 && ti!==-1) {
+            const newT = [...cvtTranscript];
+            const [removed] = newT.splice(di,1); newT.splice(ti,0,removed);
+            cvtTranscript = newT; renderSentenceBuilder();
+          }
+        }
+      });
+      el.addEventListener('dragend', () => { cvtDraggedItem=null; renderSentenceBuilder(); });
+    });
+  }
+
+  window.cvtDeleteWord = function(id) {
+    cvtTranscript = cvtTranscript.filter(w=>w.id!==id);
+    renderSentenceBuilder();
+  };
+  window.cvtHoverWord = function(id) { cvtHoveredWord=id; };
+  window.cvtUnhoverWord = function() { cvtHoveredWord=null; };
+
+  function renderCompletedSentences() {
+    const empty = document.getElementById('transcriptEmpty');
+    const container = document.getElementById('completedSentencesContainer');
+    if (!cvtCompletedSentences.length) { empty.style.display=''; container.innerHTML=''; return; }
+    empty.style.display='none';
+    container.innerHTML = cvtCompletedSentences.map((s,i) => `
+      <div class="sentence-item"><span class="sentence-num">${i+1}.</span>${s}</div>
+    `).join('');
+  }
+</script>
+</html>
+Installation & Running
+Backend Setup:
+bash
+npm install express cors fs path
+node server.js
+Frontend:
+Open index.html in a web browser. The backend must be running on http://localhost:3000 for full functionality.
+
+Key Features Implemented
+✅ Backend API for gesture dataset management
+✅ Real-time hand & pose landmark detection
+✅ KNN gesture recognition algorithm
+✅ Multi-language translation support
+✅ Text-to-speech synthesis
+✅ Grammar correction
+✅ Drag-and-drop sentence builder
+✅ Dark/Light mode toggle
+✅ Dataset import/export with conflict resolution
+✅ Responsive design for desktop & mobile
+
+Complete! Ready to use. 🚀
