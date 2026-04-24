@@ -1,45 +1,3 @@
-Perfect! ✅ I've created a comprehensive implementation guide as a markdown file with your entire HandSpeakAI codebase organized into logical, copyable sections.
-
-📋 What Was Created:
-A complete guide titled COMPLETE_IMPLEMENTATION_GUIDE.md containing:
-
-Backend (13 Parts)
-Server initialization
-File I/O operations
-All 7 API endpoints
-Server startup
-Frontend HTML (11 Parts)
-Document structure
-Navigation bar
-All 4 pages (Home, Feed, Convert, Credits)
-Modals and UI components
-Script tags
-Frontend CSS (1 Complete Block)
-All 16 CSS sections combined
-Variables, animations, responsive design
-Dark/Light mode
-Component styling
-Frontend JavaScript (1 Complete Block)
-43 functions total
-Navigation & initialization
-Feed page logic
-Convert page logic
-Gesture recognition with KNN
-Translation & text-to-speech
-Sentence building
-🎯 How to Use:
-Copy the Backend section → server.js
-Copy the HTML → index.html
-Copy the CSS into <style> tag
-Copy the JavaScript into <script> tag
-Run backend: node server.js
-Open frontend in browser
-All code flows sequentially - copy and paste in order for a complete, working application! 🚀
-
-Make these code changes?
-COMPLETE_IMPLEMENTATION_GUIDE.md
-
-md
 # HandSpeakAI - Complete Implementation Guide
 
 A comprehensive guide to building HandSpeakAI, dividing the entire codebase into logical, copyable sections for easy implementation.
@@ -52,6 +10,8 @@ A comprehensive guide to building HandSpeakAI, dividing the entire codebase into
 2. [Frontend HTML Structure](#frontend-html-structure)
 3. [Frontend Styles (CSS)](#frontend-styles)
 4. [Frontend JavaScript Logic](#frontend-javascript-logic)
+5. [Installation & Running](#installation--running)
+6. [Key Features Implemented](#key-features-implemented)
 
 ---
 
@@ -73,8 +33,11 @@ const DATA_FILE = path.join(__dirname, 'gesture_dataset.json')
 
 app.use(cors())
 app.use(express.json({ limit: '500mb' }))
-Part 2: File I/O Functions
-JavaScript
+```
+
+### Part 2: File I/O Functions
+
+```javascript
 async function readDataset() {
   try {
     const data = await fs.readFile(DATA_FILE, 'utf8')
@@ -89,8 +52,11 @@ async function readDataset() {
 async function writeDataset(dataset) {
   await fs.writeFile(DATA_FILE, JSON.stringify(dataset, null, 2))
 }
-Part 3: POST /add - Add Examples to Dataset
-JavaScript
+```
+
+### Part 3: POST /add - Add Examples to Dataset
+
+```javascript
 app.post('/add', async (req, res) => {
   try {
     const { dataset: incoming } = req.body
@@ -114,8 +80,11 @@ app.post('/add', async (req, res) => {
     res.status(500).json({ error: 'Server error' })
   }
 })
-Part 4: GET /fetch - Retrieve Dataset
-JavaScript
+```
+
+### Part 4: GET /fetch - Retrieve Dataset
+
+```javascript
 app.get('/fetch', async (req, res) => {
   try {
     const dataset = await readDataset()
@@ -124,8 +93,11 @@ app.get('/fetch', async (req, res) => {
     res.status(500).json({ error: 'Server error' })
   }
 })
-Part 5: GET /share - Export Dataset as File
-JavaScript
+```
+
+### Part 5: GET /share - Export Dataset as File
+
+```javascript
 app.get('/share', async (req, res) => {
   try {
     const dataset = await readDataset()
@@ -142,8 +114,11 @@ app.get('/share', async (req, res) => {
     res.status(500).json({ error: 'Server error' })
   }
 })
-Part 6: POST /check-conflicts - Detect Label Conflicts
-JavaScript
+```
+
+### Part 6: POST /check-conflicts - Detect Label Conflicts
+
+```javascript
 app.post('/check-conflicts', async (req, res) => {
   try {
     const { dataset: incoming } = req.body
@@ -172,8 +147,11 @@ app.post('/check-conflicts', async (req, res) => {
     res.status(500).json({ error: 'Server error' })
   }
 })
-Part 7: POST /merge-dataset - Merge with User Decisions
-JavaScript
+```
+
+### Part 7: POST /merge-dataset - Merge with User Decisions
+
+```javascript
 app.post('/merge-dataset', async (req, res) => {
   try {
     const { dataset: incoming, replacements = [], rejections = [] } = req.body
@@ -208,8 +186,11 @@ app.post('/merge-dataset', async (req, res) => {
     res.status(500).json({ error: 'Server error' })
   }
 })
-Part 8: POST /replace-dataset - Replace Entire Database
-JavaScript
+```
+
+### Part 8: POST /replace-dataset - Replace Entire Database
+
+```javascript
 app.post('/replace-dataset', async (req, res) => {
   try {
     const { dataset: incoming } = req.body
@@ -228,8 +209,11 @@ app.post('/replace-dataset', async (req, res) => {
     res.status(500).json({ error: 'Server error' })
   }
 })
-Part 9: GET /stats - Get Dataset Statistics
-JavaScript
+```
+
+### Part 9: GET /stats - Get Dataset Statistics
+
+```javascript
 app.get('/stats', async (req, res) => {
   try {
     const dataset = await readDataset()
@@ -248,8 +232,11 @@ app.get('/stats', async (req, res) => {
     res.status(500).json({ error: 'Server error' })
   }
 })
-Part 10: POST /delete-gesture - Delete Single Gesture
-JavaScript
+```
+
+### Part 10: POST /delete-gesture - Delete Single Gesture
+
+```javascript
 app.post('/delete-gesture', async (req, res) => {
   try {
     const { label } = req.body
@@ -269,8 +256,11 @@ app.post('/delete-gesture', async (req, res) => {
     res.status(500).json({ error: 'Server error' })
   }
 })
-Part 11: POST /clear-database - Clear All Data
-JavaScript
+```
+
+### Part 11: POST /clear-database - Clear All Data
+
+```javascript
 app.post('/clear-database', async (req, res) => {
   try {
     await writeDataset({})
@@ -279,13 +269,19 @@ app.post('/clear-database', async (req, res) => {
     res.status(500).json({ error: 'Server error' })
   }
 })
-Part 12: GET /health - Health Check Endpoint
-JavaScript
+```
+
+### Part 12: GET /health - Health Check Endpoint
+
+```javascript
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() })
 })
-Part 13: Server Start
-JavaScript
+```
+
+### Part 13: Server Start
+
+```javascript
 app.listen(PORT, async () => {
   console.log(`\nGesture Backend RUNNING on http://localhost:${PORT}`)
   console.log(`Dataset: ${DATA_FILE}\n`)
@@ -298,11 +294,15 @@ app.listen(PORT, async () => {
     console.log(`No dataset found. Starting fresh.`)
   }
 })
-Frontend HTML Structure
-Part 1: HTML Document Head & Meta Tags
-File: index.html
+```
 
-HTML
+## Frontend HTML Structure
+
+### Part 1: HTML Document Head & Meta Tags
+
+**File: `index.html`**
+
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -317,8 +317,11 @@ HTML
     /* CSS will go here - see Frontend Styles section */
   </style>
 </head>
-Part 2: Canvas Background & Navigation Bar
-HTML
+```
+
+### Part 2: Canvas Background & Navigation Bar
+
+```html
 <body class="dark-mode" id="app">
 
 <!-- PARTICLE CANVAS (Home page background) -->
@@ -335,8 +338,11 @@ HTML
     <button class="mode-toggle" id="modeBtn" onclick="toggleMode()">☀ Light</button>
   </div>
 </nav>
-Part 3: Home Page - Hero Section
-HTML
+```
+
+### Part 3: Home Page - Hero Section
+
+```html
 <div id="page-home" class="page active">
   <!-- Hero -->
   <section class="section hero-section appear" style="padding-top:2rem">
@@ -362,8 +368,11 @@ HTML
       </div>
     </div>
   </section>
-Part 4: Home Page - Typewriter & Devices Section
-HTML
+```
+
+### Part 4: Home Page - Typewriter & Devices Section
+
+```html
   <!-- Typewriter + Devices -->
   <section class="section appear" id="section2">
     <div class="typewriter-container">
@@ -396,8 +405,11 @@ HTML
       </div>
     </div>
   </section>
-Part 5: Home Page - Features Section
-HTML
+```
+
+### Part 5: Home Page - Features Section
+
+```html
   <!-- Features -->
   <section class="section appear section-dark" id="section3">
     <h1>Unique Features</h1>
@@ -451,8 +463,11 @@ HTML
       </div>
     </div>
   </section>
-Part 6: Home Page - Use Cases Section
-HTML
+```
+
+### Part 6: Home Page - Use Cases Section
+
+```html
   <!-- Use Cases -->
   <section class="section appear" id="section5">
     <h1>Use Cases</h1>
@@ -479,8 +494,11 @@ HTML
       </div>
     </div>
   </section>
-Part 7: Home Page - Getting Started & Impact Sections
-HTML
+```
+
+### Part 7: Home Page - Getting Started & Impact Sections
+
+```html
   <!-- How to Get Started -->
   <section class="section appear" id="section4" style="background:var(--bg2)">
     <h1 class="prcs">How to Get Started:</h1>
@@ -519,8 +537,11 @@ HTML
     </div>
   </section>
 </div>
-Part 8: Feed Page - Main Structure
-HTML
+```
+
+### Part 8: Feed Page - Main Structure
+
+```html
 <div id="page-feed" class="page">
   <div class="feed-container">
     <div class="page-header">
@@ -549,8 +570,11 @@ HTML
     </div>
 
     <div id="feedMessage" class="message-bar hidden"></div>
-Part 9: Feed Page - Modals (Stats, Delete, Conflict, Replace)
-HTML
+```
+
+### Part 9: Feed Page - Modals (Stats, Delete, Conflict, Replace)
+
+```html
     <!-- Stats modal -->
     <div id="statsModal" class="modal-overlay hidden">
       <div class="modal-box">
@@ -611,8 +635,11 @@ HTML
     </div>
   </div>
 </div>
-Part 10: Convert Page - Main Structure
-HTML
+```
+
+### Part 10: Convert Page - Main Structure
+
+```html
 <div id="page-convert" class="page">
   <div class="convert-container">
     <div class="page-header">
@@ -658,8 +685,11 @@ HTML
     </div>
   </div>
 </div>
-Part 11: Credits Page
-HTML
+```
+
+### Part 11: Credits Page
+
+```html
 <div id="page-credits" class="page">
   <div class="credits-container">
     <h1 class="credits-title">Credits</h1>
@@ -716,14 +746,21 @@ HTML
     PoseLandmarker,
     FilesetResolver
   } from 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.mjs';
-Part 12: Script Closing Tag
-HTML
+```
+
+### Part 12: Script Closing Tag
+
+```html
 </script>
 </body>
 </html>
-Frontend Styles
-Complete CSS for <style> tag
-CSS
+```
+
+## Frontend Styles
+
+### Complete CSS for <style> tag
+
+```css
 /* ═══════════════════════════════ RESET & ROOT ═══════════════════════════════ */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -1166,7 +1203,6 @@ nav {
 .error-banner { background: rgba(255,107,107,0.1); color: var(--accent3); border: 1px solid rgba(255,107,107,0.3); border-radius: 8px; padding: 12px 14px; margin-bottom: 1rem; font-weight: 600; font-size: 0.875rem; }
 .loading-banner { background: rgba(0,204,255,0.1); color: var(--accent2); border: 1px solid rgba(0,204,255,0.3); border-radius: 8px; padding: 12px 14px; margin-bottom: 1rem; }
 
-/* ═══════════════════════════════ SCROLLBAR ═══════════════════════════════ */
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: var(--bg); }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
@@ -1183,992 +1219,1003 @@ nav {
   nav { padding: 0 1rem; }
   .nav-btn { padding: 6px 8px; font-size: 0.8rem; }
 }
-Frontend JavaScript Logic
-JavaScript
-  // ─── GLOBALS ────────────────────────────────────────────────
-  let currentMode = 'dark';
-  let currentPage = 'home';
+```
 
-  // Feed state
-  let feedHandLandmarker = null, feedPoseLandmarker = null;
-  let feedLocalDataset = {};
-  let feedExistingLabels = [];
-  let feedAnimFrame = null;
-  let feedLastVideoTime = -1;
-  let feedIsInitializing = true;
-  let feedError = false;
-  let feedConflicts = [], feedNewLabels = [], feedPendingDataset = null, feedConflictDecisions = {};
-  let feedDeleteTarget = null;
-  let feedPendingReplaceDataset = null;
-  let feedInitialized = false;
+## Frontend JavaScript Logic
 
-  // Convert state
-  let cvtHandLandmarker = null, cvtPoseLandmarker = null;
-  let cvtDataset = {};
-  let cvtAnimFrame = null;
-  let cvtLastVideoTime = -1;
-  let cvtTranscript = [];
-  let cvtCompletedSentences = [];
-  let cvtGesture = '', cvtTranslatedGesture = '', cvtConfidence = 0;
-  let cvtDraggedItem = null;
-  let cvtHoveredWord = null;
-  let isSpeaking = false, lastSpoken = '', lastSpeakTime = 0;
-  let targetLang = 'en';
-  let frameBuffer = [];
-  let lastProcessTime = 0, lastFrameTime = 0;
-  const FRAME_INTERVAL = 100, WINDOW_DURATION = 1000;
-  let cvtInitialized = false;
-  let cvtError = false;
+### Complete JavaScript for <script> tag
 
-  const PREDEFINED_GESTURES = ['hello','goodbye','yes','no','thumbs_up','peace','fist','open_palm','point','ok'];
+```javascript
+// ─── GLOBALS ────────────────────────────────────────────────
+let currentMode = 'dark';
+let currentPage = 'home';
 
-  const LANGUAGES = {
-    en:'English', es:'Spanish', fr:'French', de:'German', pt:'Portuguese',
-    it:'Italian', ru:'Russian', ar:'Arabic', nl:'Dutch', pl:'Polish',
-    tr:'Turkish', zh:'Chinese', ja:'Japanese', ko:'Korean', hi:'Hindi',
-    id:'Indonesian', sv:'Swedish', cs:'Czech', el:'Greek', hu:'Hungarian',
-    ro:'Romanian', bg:'Bulgarian', uk:'Ukrainian', fi:'Finnish', da:'Danish',
-  };
+// Feed state
+let feedHandLandmarker = null, feedPoseLandmarker = null;
+let feedLocalDataset = {};
+let feedExistingLabels = [];
+let feedAnimFrame = null;
+let feedLastVideoTime = -1;
+let feedIsInitializing = true;
+let feedError = false;
+let feedConflicts = [], feedNewLabels = [], feedPendingDataset = null, feedConflictDecisions = {};
+let feedDeleteTarget = null;
+let feedPendingReplaceDataset = null;
+let feedInitialized = false;
 
-  // ─── NAVIGATION ─────────────────────────────────────────────
-  window.navigateTo = function(page) {
-    window.location.href = window.location.pathname + '?page=' + page;
-  };
+// Convert state
+let cvtHandLandmarker = null, cvtPoseLandmarker = null;
+let cvtDataset = {};
+let cvtAnimFrame = null;
+let cvtLastVideoTime = -1;
+let cvtTranscript = [];
+let cvtCompletedSentences = [];
+let cvtGesture = '', cvtTranslatedGesture = '', cvtConfidence = 0;
+let cvtDraggedItem = null;
+let cvtHoveredWord = null;
+let isSpeaking = false, lastSpoken = '', lastSpeakTime = 0;
+let targetLang = 'en';
+let frameBuffer = [];
+let lastProcessTime = 0, lastFrameTime = 0;
+const FRAME_INTERVAL = 100, WINDOW_DURATION = 1000;
+let cvtInitialized = false;
+let cvtError = false;
 
-  (function() {
-    const params = new URLSearchParams(window.location.search);
-    const page = params.get('page') || 'home';
-    const validPages = ['home', 'feed', 'convert', 'credits'];
-    const target = validPages.includes(page) ? page : 'home';
+const PREDEFINED_GESTURES = ['hello','goodbye','yes','no','thumbs_up','peace','fist','open_palm','point','ok'];
 
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-    document.getElementById('page-' + target).classList.add('active');
-    document.getElementById('nav-' + target).classList.add('active');
+const LANGUAGES = {
+  en:'English', es:'Spanish', fr:'French', de:'German', pt:'Portuguese',
+  it:'Italian', ru:'Russian', ar:'Arabic', nl:'Dutch', pl:'Polish',
+  tr:'Turkish', zh:'Chinese', ja:'Japanese', ko:'Korean', hi:'Hindi',
+  id:'Indonesian', sv:'Swedish', cs:'Czech', el:'Greek', hu:'Hungarian',
+  ro:'Romanian', bg:'Bulgarian', uk:'Ukrainian', fi:'Finnish', da:'Danish',
+};
 
-    const canvasBg = document.getElementById('canvas-bg');
-    canvasBg.style.display = target === 'home' ? 'block' : 'none';
+// ─── NAVIGATION ─────────────────────────────────────────────
+window.navigateTo = function(page) {
+  window.location.href = window.location.pathname + '?page=' + page;
+};
 
-    currentPage = target;
+(function() {
+  const params = new URLSearchParams(window.location.search);
+  const page = params.get('page') || 'home';
+  const validPages = ['home', 'feed', 'convert', 'credits'];
+  const target = validPages.includes(page) ? page : 'home';
 
-    if (target === 'feed') { initFeed(); feedInitialized = true; }
-    if (target === 'convert') { initConvert(); cvtInitialized = true; }
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + target).classList.add('active');
+  document.getElementById('nav-' + target).classList.add('active');
 
-    window.scrollTo(0, 0);
-  })();
+  const canvasBg = document.getElementById('canvas-bg');
+  canvasBg.style.display = target === 'home' ? 'block' : 'none';
 
-  // ─── DARK/LIGHT MODE ────────────────────────────────────────
-  window.toggleMode = function() {
-    const body = document.getElementById('app');
-    const btn = document.getElementById('modeBtn');
-    if (currentMode === 'dark') {
-      body.className = 'light-mode';
-      btn.textContent = '☾ Dark';
-      currentMode = 'light';
-    } else {
-      body.className = 'dark-mode';
-      btn.textContent = '☀ Light';
-      currentMode = 'dark';
-    }
-    if (particleAnim) particleAnim.updateColors();
-  };
+  currentPage = target;
 
-  // ─── HOME: PARTICLES ────────────────────────────────────────
-  const particleAnim = (() => {
-    const canvas = document.getElementById('canvas-bg');
-    const ctx = canvas.getContext('2d');
-    let W, H, particles = [];
+  if (target === 'feed') { initFeed(); feedInitialized = true; }
+  if (target === 'convert') { initConvert(); cvtInitialized = true; }
 
-    function resize() {
-      W = canvas.width = window.innerWidth;
-      H = canvas.height = window.innerHeight;
-    }
-    resize();
-    window.addEventListener('resize', resize);
+  window.scrollTo(0, 0);
+})();
 
-    function randBetween(a, b) { return a + Math.random() * (b - a); }
+// ─── DARK/LIGHT MODE ────────────────────────────────────────
+window.toggleMode = function() {
+  const body = document.getElementById('app');
+  const btn = document.getElementById('modeBtn');
+  if (currentMode === 'dark') {
+    body.className = 'light-mode';
+    btn.textContent = '☾ Dark';
+    currentMode = 'light';
+  } else {
+    body.className = 'dark-mode';
+    btn.textContent = '☀ Light';
+    currentMode = 'dark';
+  }
+  if (particleAnim) particleAnim.updateColors();
+};
 
-    function makeParticle() {
-      return {
-        x: Math.random() * W, y: Math.random() * H,
-        vx: randBetween(-0.6, 0.6), vy: randBetween(-0.6, 0.6),
-        r: randBetween(1.5, 4)
-      };
-    }
-    for (let i = 0; i < 80; i++) particles.push(makeParticle());
+// ─── HOME: PARTICLES ────────────────────────────────────────
+const particleAnim = (() => {
+  const canvas = document.getElementById('canvas-bg');
+  const ctx = canvas.getContext('2d');
+  let W, H, particles = [];
 
-    let particleColor = '#ffffff', lineColor = '#ffffff', bgColorVal = '#0d1117';
+  function resize() {
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
 
-    function updateColors() {
-      const isDark = document.getElementById('app').className !== 'light-mode';
-      particleColor = isDark ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.5)';
-      lineColor = isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.1)';
-      bgColorVal = isDark ? '#0d1117' : '#f4f6f9';
-    }
-    updateColors();
+  function randBetween(a, b) { return a + Math.random() * (b - a); }
 
-    let mouse = { x: -9999, y: -9999 };
-    window.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
-    canvas.addEventListener('click', () => {
-      for (let i = 0; i < 4; i++) particles.push(makeParticle());
-      if (particles.length > 120) particles.splice(0, 4);
-    });
+  function makeParticle() {
+    return {
+      x: Math.random() * W, y: Math.random() * H,
+      vx: randBetween(-0.6, 0.6), vy: randBetween(-0.6, 0.6),
+      r: randBetween(1.5, 4)
+    };
+  }
+  for (let i = 0; i < 80; i++) particles.push(makeParticle());
 
-    function draw() {
-      if (currentPage !== 'home') { requestAnimationFrame(draw); return; }
-      ctx.fillStyle = bgColorVal;
-      ctx.fillRect(0, 0, W, H);
-      for (const p of particles) {
-        p.x += p.vx; p.y += p.vy;
-        if (p.x < 0 || p.x > W) p.vx *= -1;
-        if (p.y < 0 || p.y > H) p.vy *= -1;
+  let particleColor = '#ffffff', lineColor = '#ffffff', bgColorVal = '#0d1117';
 
-        const dx = p.x - mouse.x, dy = p.y - mouse.y;
-        const dist = Math.sqrt(dx*dx+dy*dy);
-        if (dist < 140) {
-          ctx.strokeStyle = lineColor;
-          ctx.lineWidth = 1;
-          ctx.beginPath();
-          ctx.moveTo(p.x, p.y); ctx.lineTo(mouse.x, mouse.y);
-          ctx.stroke();
-        }
+  function updateColors() {
+    const isDark = document.getElementById('app').className !== 'light-mode';
+    particleColor = isDark ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.5)';
+    lineColor = isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.1)';
+    bgColorVal = isDark ? '#0d1117' : '#f4f6f9';
+  }
+  updateColors();
 
-        ctx.fillStyle = particleColor;
+  let mouse = { x: -9999, y: -9999 };
+  window.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
+  canvas.addEventListener('click', () => {
+    for (let i = 0; i < 4; i++) particles.push(makeParticle());
+    if (particles.length > 120) particles.splice(0, 4);
+  });
+
+  function draw() {
+    if (currentPage !== 'home') { requestAnimationFrame(draw); return; }
+    ctx.fillStyle = bgColorVal;
+    ctx.fillRect(0, 0, W, H);
+    for (const p of particles) {
+      p.x += p.vx; p.y += p.vy;
+      if (p.x < 0 || p.x > W) p.vx *= -1;
+      if (p.y < 0 || p.y > H) p.vy *= -1;
+
+      const dx = p.x - mouse.x, dy = p.y - mouse.y;
+      const dist = Math.sqrt(dx*dx+dy*dy);
+      if (dist < 140) {
+        ctx.strokeStyle = lineColor;
+        ctx.lineWidth = 1;
         ctx.beginPath();
-        ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
-        ctx.fill();
+        ctx.moveTo(p.x, p.y); ctx.lineTo(mouse.x, mouse.y);
+        ctx.stroke();
       }
-      for (let i = 0; i < particles.length; i++) {
-        for (let j = i+1; j < particles.length; j++) {
-          const dx = particles[i].x - particles[j].x;
-          const dy = particles[i].y - particles[j].y;
-          const d = Math.sqrt(dx*dx+dy*dy);
-          if (d < 150) {
-            ctx.strokeStyle = lineColor;
-            ctx.lineWidth = 0.7;
-            ctx.globalAlpha = 1 - d/150;
-            ctx.beginPath();
-            ctx.moveTo(particles[i].x, particles[i].y);
-            ctx.lineTo(particles[j].x, particles[j].y);
-            ctx.stroke();
-            ctx.globalAlpha = 1;
-          }
+
+      ctx.fillStyle = particleColor;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+      ctx.fill();
+    }
+    for (let i = 0; i < particles.length; i++) {
+      for (let j = i+1; j < particles.length; j++) {
+        const dx = particles[i].x - particles[j].x;
+        const dy = particles[i].y - particles[j].y;
+        const d = Math.sqrt(dx*dx+dy*dy);
+        if (d < 150) {
+          ctx.strokeStyle = lineColor;
+          ctx.lineWidth = 0.7;
+          ctx.globalAlpha = 1 - d/150;
+          ctx.beginPath();
+          ctx.moveTo(particles[i].x, particles[i].y);
+          ctx.lineTo(particles[j].x, particles[j].y);
+          ctx.stroke();
+          ctx.globalAlpha = 1;
         }
       }
-      requestAnimationFrame(draw);
     }
-    draw();
-    return { updateColors };
-  })();
+    requestAnimationFrame(draw);
+  }
+  draw();
+  return { updateColors };
+})();
 
-  // ─── HOME: INTERSECTION OBSERVER ────────────────────────────
-  const appearEls = document.querySelectorAll('.appear');
-  const obs = new IntersectionObserver(entries => {
-    entries.forEach(e => {
-      if (e.isIntersecting) e.target.classList.add('visible');
-      else e.target.classList.remove('visible');
+// ─── HOME: INTERSECTION OBSERVER ────────────────────────────
+const appearEls = document.querySelectorAll('.appear');
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) e.target.classList.add('visible');
+    else e.target.classList.remove('visible');
+  });
+}, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+appearEls.forEach(el => obs.observe(el));
+
+// ─── HOME: TYPEWRITER ────────────────────────────────────────
+(() => {
+  const el = document.getElementById('typewriterText');
+  if (!el) return;
+  const phrases = ['any device','desktop','mobile','tablet'];
+  let i=0, c=0, deleting=false, speed=100;
+  function tick() {
+    const phrase = phrases[i];
+    el.textContent = deleting ? phrase.substring(0, c-1) : phrase.substring(0, c+1);
+    deleting ? c-- : c++;
+    if (!deleting && c === phrase.length) { deleting = true; speed = 1500; }
+    else if (deleting && c === 0) { deleting = false; i = (i+1) % phrases.length; speed = 100; }
+    else { speed = deleting ? 50 : 100; }
+    setTimeout(tick, speed);
+  }
+  tick();
+})();
+
+// ─── POPULATE LANGUAGE DROPDOWN ────────────────────────────
+(() => {
+  const sel = document.getElementById('langSelect');
+  Object.entries(LANGUAGES).forEach(([code, name]) => {
+    const opt = document.createElement('option');
+    opt.value = code; opt.textContent = name;
+    sel.appendChild(opt);
+  });
+})();
+
+// ════════════════════════════════════════════════════════════
+//  FEED PAGE
+// ════════════════════════════════════════════════════════════
+
+async function initFeed() {
+  await Promise.all([initFeedLandmarkers(), enableFeedWebcam(), feedFetchCurrentLabels()]);
+}
+
+async function initFeedLandmarkers() {
+  try {
+    const vision = await FilesetResolver.forVisionTasks(
+      'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm'
+    );
+    feedHandLandmarker = await HandLandmarker.createFromOptions(vision, {
+      baseOptions: {
+        modelAssetPath: 'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task',
+        delegate: 'GPU',
+      },
+      runningMode: 'VIDEO', numHands: 2,
     });
-  }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
-  appearEls.forEach(el => obs.observe(el));
-
-  // ─── HOME: TYPEWRITER ────────────────────────────────────────
-  (() => {
-    const el = document.getElementById('typewriterText');
-    if (!el) return;
-    const phrases = ['any device','desktop','mobile','tablet'];
-    let i=0, c=0, deleting=false, speed=100;
-    function tick() {
-      const phrase = phrases[i];
-      el.textContent = deleting ? phrase.substring(0, c-1) : phrase.substring(0, c+1);
-      deleting ? c-- : c++;
-      if (!deleting && c === phrase.length) { deleting = true; speed = 1500; }
-      else if (deleting && c === 0) { deleting = false; i = (i+1) % phrases.length; speed = 100; }
-      else { speed = deleting ? 50 : 100; }
-      setTimeout(tick, speed);
-    }
-    tick();
-  })();
-
-  // ─── POPULATE LANGUAGE DROPDOWN ────────────────────────────
-  (() => {
-    const sel = document.getElementById('langSelect');
-    Object.entries(LANGUAGES).forEach(([code, name]) => {
-      const opt = document.createElement('option');
-      opt.value = code; opt.textContent = name;
-      sel.appendChild(opt);
+    feedPoseLandmarker = await PoseLandmarker.createFromOptions(vision, {
+      baseOptions: {
+        modelAssetPath: 'https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task',
+        delegate: 'GPU',
+      },
+      runningMode: 'VIDEO', numPoses: 1,
     });
-  })();
-
-  // ════════════════════════════════════════════════════════════
-  //  FEED PAGE
-  // ════════════════════════════════════════════════════════════
-
-  async function initFeed() {
-    await Promise.all([initFeedLandmarkers(), enableFeedWebcam(), feedFetchCurrentLabels()]);
-  }
-
-  async function initFeedLandmarkers() {
-    try {
-      const vision = await FilesetResolver.forVisionTasks(
-        'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm'
-      );
-      feedHandLandmarker = await HandLandmarker.createFromOptions(vision, {
-        baseOptions: {
-          modelAssetPath: 'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task',
-          delegate: 'GPU',
-        },
-        runningMode: 'VIDEO', numHands: 2,
-      });
-      feedPoseLandmarker = await PoseLandmarker.createFromOptions(vision, {
-        baseOptions: {
-          modelAssetPath: 'https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task',
-          delegate: 'GPU',
-        },
-        runningMode: 'VIDEO', numPoses: 1,
-      });
-      feedIsInitializing = false;
-      document.getElementById('feed-init-msg').classList.add('hidden');
-    } catch(e) {
-      showFeedError('Failed to load recognition models. Please refresh the page.');
-    }
-  }
-
-  async function enableFeedWebcam() {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { width:640, height:480 } });
-      const video = document.getElementById('feedVideo');
-      video.srcObject = stream;
-      video.onloadedmetadata = () => video.play();
-      video.onloadeddata = () => {
-        const canvas = document.getElementById('feedCanvas');
-        canvas.width = video.videoWidth || 640;
-        canvas.height = video.videoHeight || 480;
-        let rawLoopActive = true;
-        function drawRaw() {
-          if (!rawLoopActive) return;
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-          requestAnimationFrame(drawRaw);
-        }
-        drawRaw();
-        function tryStartPrediction() {
-          if (feedHandLandmarker && feedPoseLandmarker) {
-            rawLoopActive = false;
-            feedPredictWebcam();
-          } else {
-            setTimeout(tryStartPrediction, 200);
-          }
-        }
-        tryStartPrediction();
-      };
-    } catch {
-      showFeedError('Cannot access camera. Please grant camera permissions and refresh.');
-    }
-  }
-
-  async function feedFetchCurrentLabels() {
-    try {
-      const res = await fetch('http://localhost:3000/fetch');
-      if (res.ok) { const d = await res.json(); feedExistingLabels = Object.keys(d); }
-    } catch {}
-  }
-
-  function showFeedError(msg) {
-    feedError = true;
-    const el = document.getElementById('feed-error');
-    el.textContent = msg; el.classList.remove('hidden');
+    feedIsInitializing = false;
     document.getElementById('feed-init-msg').classList.add('hidden');
+  } catch(e) {
+    showFeedError('Failed to load recognition models. Please refresh the page.');
   }
+}
 
-  function showFeedMessage(text, type) {
-    const el = document.getElementById('feedMessage');
-    el.textContent = text;
-    el.className = 'message-bar msg-' + type;
-    el.classList.remove('hidden');
-    setTimeout(() => el.classList.add('hidden'), 4000);
-  }
-
-  function feedDrawLandmarks(handResults, poseResults) {
-    const canvas = document.getElementById('feedCanvas');
+async function enableFeedWebcam() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ video: { width:640, height:480 } });
     const video = document.getElementById('feedVideo');
-    if (!canvas || !video) return;
-    const ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-    if (handResults?.landmarks?.length > 0) {
-      const connections = [[0,1],[1,2],[2,3],[3,4],[0,5],[5,6],[6,7],[7,8],[5,9],[9,10],[10,11],[11,12],[9,13],[13,14],[14,15],[15,16],[13,17],[17,18],[18,19],[19,20],[0,17]];
-      ctx.strokeStyle = '#00FF00'; ctx.lineWidth = 2; ctx.fillStyle = '#FF0000';
-      for (const landmarks of handResults.landmarks) {
-        for (const [a,b] of connections) {
-          ctx.beginPath(); ctx.moveTo(landmarks[a].x*canvas.width, landmarks[a].y*canvas.height);
-          ctx.lineTo(landmarks[b].x*canvas.width, landmarks[b].y*canvas.height); ctx.stroke();
-        }
-        for (const lm of landmarks) {
-          ctx.beginPath(); ctx.arc(lm.x*canvas.width, lm.y*canvas.height, 4, 0, Math.PI*2); ctx.fill();
+    video.srcObject = stream;
+    video.onloadedmetadata = () => video.play();
+    video.onloadeddata = () => {
+      const canvas = document.getElementById('feedCanvas');
+      canvas.width = video.videoWidth || 640;
+      canvas.height = video.videoHeight || 480;
+      let rawLoopActive = true;
+      function drawRaw() {
+        if (!rawLoopActive) return;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        requestAnimationFrame(drawRaw);
+      }
+      drawRaw();
+      function tryStartPrediction() {
+        if (feedHandLandmarker && feedPoseLandmarker) {
+          rawLoopActive = false;
+          feedPredictWebcam();
+        } else {
+          setTimeout(tryStartPrediction, 200);
         }
       }
-    }
-    if (poseResults?.landmarks?.length > 0) {
-      const pl = poseResults.landmarks[0];
-      ctx.strokeStyle = '#00FFFF'; ctx.lineWidth = 3;
-      const s = pl[11], e = pl[12];
-      if (s && e) { ctx.beginPath(); ctx.moveTo(s.x*canvas.width,s.y*canvas.height); ctx.lineTo(e.x*canvas.width,e.y*canvas.height); ctx.stroke(); }
-      ctx.fillStyle = '#FFFF00';
-      for (const idx of [0,11,12]) { const lm=pl[idx]; if(lm){ctx.beginPath();ctx.arc(lm.x*canvas.width,lm.y*canvas.height,6,0,Math.PI*2);ctx.fill();} }
-    }
+      tryStartPrediction();
+    };
+  } catch {
+    showFeedError('Cannot access camera. Please grant camera permissions and refresh.');
   }
+}
 
-  async function feedPredictWebcam() {
-    const video = document.getElementById('feedVideo');
-    if (!video || !feedHandLandmarker || !feedPoseLandmarker) return;
-    try {
-      if (video.currentTime !== feedLastVideoTime) {
-        feedLastVideoTime = video.currentTime;
-        const now = performance.now();
-        const hr = await feedHandLandmarker.detectForVideo(video, now);
-        const pr = await feedPoseLandmarker.detectForVideo(video, now);
-        feedDrawLandmarks(hr, pr);
+async function feedFetchCurrentLabels() {
+  try {
+    const res = await fetch('http://localhost:3000/fetch');
+    if (res.ok) { const d = await res.json(); feedExistingLabels = Object.keys(d); }
+  } catch {}
+}
+
+function showFeedError(msg) {
+  feedError = true;
+  const el = document.getElementById('feed-error');
+  el.textContent = msg; el.classList.remove('hidden');
+  document.getElementById('feed-init-msg').classList.add('hidden');
+}
+
+function showFeedMessage(text, type) {
+  const el = document.getElementById('feedMessage');
+  el.textContent = text;
+  el.className = 'message-bar msg-' + type;
+  el.classList.remove('hidden');
+  setTimeout(() => el.classList.add('hidden'), 4000);
+}
+
+function feedDrawLandmarks(handResults, poseResults) {
+  const canvas = document.getElementById('feedCanvas');
+  const video = document.getElementById('feedVideo');
+  if (!canvas || !video) return;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+  if (handResults?.landmarks?.length > 0) {
+    const connections = [[0,1],[1,2],[2,3],[3,4],[0,5],[5,6],[6,7],[7,8],[5,9],[9,10],[10,11],[11,12],[9,13],[13,14],[14,15],[15,16],[13,17],[17,18],[18,19],[19,20],[0,17]];
+    ctx.strokeStyle = '#00FF00'; ctx.lineWidth = 2; ctx.fillStyle = '#FF0000';
+    for (const landmarks of handResults.landmarks) {
+      for (const [a,b] of connections) {
+        ctx.beginPath(); ctx.moveTo(landmarks[a].x*canvas.width, landmarks[a].y*canvas.height);
+        ctx.lineTo(landmarks[b].x*canvas.width, landmarks[b].y*canvas.height); ctx.stroke();
       }
-    } catch {}
-    feedAnimFrame = requestAnimationFrame(feedPredictWebcam);
-  }
-
-  window.feedAddExample = async function() {
-    const input = document.getElementById('labelInput');
-    const trimmedLabel = input.value.trim();
-    if (!trimmedLabel) { showFeedMessage('Please enter a label', 'error'); return; }
-    if (!feedHandLandmarker || !feedPoseLandmarker) { showFeedMessage('System not ready. Please wait...', 'error'); return; }
-
-    const isPredefined = PREDEFINED_GESTURES.includes(trimmedLabel);
-    if (!isPredefined && feedExistingLabels.includes(trimmedLabel)) {
-      showFeedMessage(`Label "${trimmedLabel}" already exists. Please rename it.`, 'error'); return;
+      for (const lm of landmarks) {
+        ctx.beginPath(); ctx.arc(lm.x*canvas.width, lm.y*canvas.height, 4, 0, Math.PI*2); ctx.fill();
+      }
     }
+  }
+  if (poseResults?.landmarks?.length > 0) {
+    const pl = poseResults.landmarks[0];
+    ctx.strokeStyle = '#00FFFF'; ctx.lineWidth = 3;
+    const s = pl[11], e = pl[12];
+    if (s && e) { ctx.beginPath(); ctx.moveTo(s.x*canvas.width,s.y*canvas.height); ctx.lineTo(e.x*canvas.width,e.y*canvas.height); ctx.stroke(); }
+    ctx.fillStyle = '#FFFF00';
+    for (const idx of [0,11,12]) { const lm=pl[idx]; if(lm){ctx.beginPath();ctx.arc(lm.x*canvas.width,lm.y*canvas.height,6,0,Math.PI*2);ctx.fill();} }
+  }
+}
 
-    const video = document.getElementById('feedVideo');
-    try {
+async function feedPredictWebcam() {
+  const video = document.getElementById('feedVideo');
+  if (!video || !feedHandLandmarker || !feedPoseLandmarker) return;
+  try {
+    if (video.currentTime !== feedLastVideoTime) {
+      feedLastVideoTime = video.currentTime;
       const now = performance.now();
       const hr = await feedHandLandmarker.detectForVideo(video, now);
       const pr = await feedPoseLandmarker.detectForVideo(video, now);
-
-      if (!hr.landmarks || hr.landmarks.length === 0) {
-        showFeedMessage('No hand detected. Please show your hand to the camera.', 'error'); return;
-      }
-
-      const features = [];
-      for (const hl of hr.landmarks) for (const lm of hl) features.push(lm.x, lm.y, lm.z);
-      if (pr.landmarks?.length > 0) {
-        const pl = pr.landmarks[0];
-        for (const idx of [0,11,12]) {
-          const lm = pl[idx];
-          if (lm) features.push(lm.x, lm.y, lm.z, lm.visibility||0);
-          else features.push(0,0,0,0);
-        }
-      } else features.push(...Array(12).fill(0));
-
-      if (!feedLocalDataset[trimmedLabel]) feedLocalDataset[trimmedLabel] = [];
-      feedLocalDataset[trimmedLabel].push(features);
-      showFeedMessage(`Added example ${feedLocalDataset[trimmedLabel].length} for "${trimmedLabel}"`, 'success');
-      updateFeedDatasetPanel();
-    } catch { showFeedMessage('Failed to capture gesture. Please try again.', 'error'); }
-  };
-
-  function updateFeedDatasetPanel() {
-    const panel = document.getElementById('datasetInfoPanel');
-    const content = document.getElementById('datasetInfoContent');
-    if (Object.keys(feedLocalDataset).length === 0) { panel.classList.add('hidden'); return; }
-    panel.classList.remove('hidden');
-    let html = '';
-    let total = 0;
-    for (const [key, examples] of Object.entries(feedLocalDataset)) {
-      total += examples.length;
-      html += `<p class="gesture-count">${key}: ${examples.length} example${examples.length!==1?'s':''}`;
-      if (examples.length < 3) html += ` <span style="color:#ff8800;margin-left:8px;font-size:0.9em">(add ${3-examples.length} more)</span>`;
-      html += '</p>';
+      feedDrawLandmarks(hr, pr);
     }
-    html += `<p class="total-count">Total: ${total} examples</p>`;
-    content.innerHTML = html;
+  } catch {}
+  feedAnimFrame = requestAnimationFrame(feedPredictWebcam);
+}
+
+window.feedAddExample = async function() {
+  const input = document.getElementById('labelInput');
+  const trimmedLabel = input.value.trim();
+  if (!trimmedLabel) { showFeedMessage('Please enter a label', 'error'); return; }
+  if (!feedHandLandmarker || !feedPoseLandmarker) { showFeedMessage('System not ready. Please wait...', 'error'); return; }
+
+  const isPredefined = PREDEFINED_GESTURES.includes(trimmedLabel);
+  if (!isPredefined && feedExistingLabels.includes(trimmedLabel)) {
+    showFeedMessage(`Label "${trimmedLabel}" already exists. Please rename it.`, 'error'); return;
   }
 
-  window.feedSaveDataset = async function() {
-    if (Object.keys(feedLocalDataset).length === 0) { showFeedMessage('No data to save. Add some examples first.', 'error'); return; }
-    const insufficient = Object.entries(feedLocalDataset).filter(([_,v])=>v.length<3).map(([k])=>k);
-    if (insufficient.length > 0) { showFeedMessage(`Warning: "${insufficient.join('", "')}" has fewer than 3 examples.`, 'error'); return; }
-    try {
-      const res = await fetch('http://localhost:3000/add', {
-        method: 'POST', headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({ dataset: feedLocalDataset })
-      });
-      if (!res.ok) throw new Error();
-      const total = Object.values(feedLocalDataset).reduce((s,a)=>s+a.length,0);
-      showFeedMessage(`Dataset saved successfully! ${total} examples stored.`, 'success');
-      feedLocalDataset = {};
-      document.getElementById('labelInput').value = '';
-      updateFeedDatasetPanel();
-      feedFetchCurrentLabels();
-    } catch { showFeedMessage('Failed to save dataset. Make sure backend server is running on port 3000.', 'error'); }
-  };
+  const video = document.getElementById('feedVideo');
+  try {
+    const now = performance.now();
+    const hr = await feedHandLandmarker.detectForVideo(video, now);
+    const pr = await feedPoseLandmarker.detectForVideo(video, now);
 
-  window.feedLoadDataset = function() { document.getElementById('fileInput').click(); };
+    if (!hr.landmarks || hr.landmarks.length === 0) {
+      showFeedMessage('No hand detected. Please show your hand to the camera.', 'error'); return;
+    }
 
-  window.feedHandleFileSelect = async function(e) {
-    const file = e.target.files?.[0]; if (!file) return;
-    try {
-      const text = await file.text();
-      let incoming;
-      try { const p = JSON.parse(text); incoming = p.dataset || p; } catch { showFeedMessage('Invalid JSON file.', 'error'); return; }
-      for (const label in incoming) { if (!Array.isArray(incoming[label])) { showFeedMessage(`Invalid data for "${label}"`, 'error'); return; } }
-
-      const res = await fetch('http://localhost:3000/check-conflicts', {
-        method: 'POST', headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({ dataset: incoming })
-      });
-      if (!res.ok) throw new Error();
-      const result = await res.json();
-      if (result.hasConflicts) {
-        feedConflicts = result.conflicts; feedNewLabels = result.newLabels; feedPendingDataset = incoming;
-        feedConflictDecisions = {};
-        feedConflicts.forEach(c => { feedConflictDecisions[c.label] = false; });
-        renderConflictModal();
-      } else {
-        await feedMergeDirectly(incoming);
+    const features = [];
+    for (const hl of hr.landmarks) for (const lm of hl) features.push(lm.x, lm.y, lm.z);
+    if (pr.landmarks?.length > 0) {
+      const pl = pr.landmarks[0];
+      for (const idx of [0,11,12]) {
+        const lm = pl[idx];
+        if (lm) features.push(lm.x, lm.y, lm.z, lm.visibility||0);
+        else features.push(0,0,0,0);
       }
-    } catch { showFeedMessage('Failed to load dataset. Is backend running?', 'error'); }
-    e.target.value = '';
-  };
+    } else features.push(...Array(12).fill(0));
 
-  window.feedHandleReplaceFileSelect = async function(e) {
-    const file = e.target.files?.[0]; if (!file) return;
-    try {
-      const text = await file.text();
-      let incoming;
-      try { const p = JSON.parse(text); incoming = p.dataset || p; } catch { showFeedMessage('Invalid JSON file.', 'error'); return; }
-      for (const label in incoming) { if (!Array.isArray(incoming[label])) { showFeedMessage(`Invalid data for "${label}"`, 'error'); return; } }
-      feedPendingReplaceDataset = incoming;
-      document.getElementById('replaceModal').classList.remove('hidden');
-    } catch { showFeedMessage('Failed to read file.', 'error'); }
-    e.target.value = '';
-  };
+    if (!feedLocalDataset[trimmedLabel]) feedLocalDataset[trimmedLabel] = [];
+    feedLocalDataset[trimmedLabel].push(features);
+    showFeedMessage(`Added example ${feedLocalDataset[trimmedLabel].length} for "${trimmedLabel}"`, 'success');
+    updateFeedDatasetPanel();
+  } catch { showFeedMessage('Failed to capture gesture. Please try again.', 'error'); }
+};
 
-  async function feedMergeDirectly(incoming) {
-    try {
-      const res = await fetch('http://localhost:3000/merge-dataset', {
-        method: 'POST', headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({ dataset: incoming, replacements: [], rejections: [] })
-      });
-      if (!res.ok) throw new Error();
-      showFeedMessage('Dataset loaded successfully!', 'success');
-      feedFetchCurrentLabels();
-    } catch { showFeedMessage('Failed to merge dataset.', 'error'); }
+function updateFeedDatasetPanel() {
+  const panel = document.getElementById('datasetInfoPanel');
+  const content = document.getElementById('datasetInfoContent');
+  if (Object.keys(feedLocalDataset).length === 0) { panel.classList.add('hidden'); return; }
+  panel.classList.remove('hidden');
+  let html = '';
+  let total = 0;
+  for (const [key, examples] of Object.entries(feedLocalDataset)) {
+    total += examples.length;
+    html += `<p class="gesture-count">${key}: ${examples.length} example${examples.length!==1?'s':''}`;
+    if (examples.length < 3) html += ` <span style="color:#ff8800;margin-left:8px;font-size:0.9em">(add ${3-examples.length} more)</span>`;
+    html += '</p>';
   }
+  html += `<p class="total-count">Total: ${total} examples</p>`;
+  content.innerHTML = html;
+}
 
-  function renderConflictModal() {
-    const list = document.getElementById('conflictList');
-    list.innerHTML = feedConflicts.map(c => `
-      <div class="conflict-item" id="ci-${c.label}">
-        <div class="conflict-info">
-          <div class="conflict-label">${c.label}</div>
-          <div class="conflict-details">Existing: ${c.existingCount} | Incoming: ${c.incomingCount}</div>
-        </div>
-        <div class="conflict-actions">
-          <button class="action-btn replace ${feedConflictDecisions[c.label]?'active':''}" onclick="feedSetConflictDecision('${c.label}', true)">Replace</button>
-          <button class="action-btn reject ${!feedConflictDecisions[c.label]?'active':''}" onclick="feedSetConflictDecision('${c.label}', false)">Keep Existing</button>
-        </div>
+window.feedSaveDataset = async function() {
+  if (Object.keys(feedLocalDataset).length === 0) { showFeedMessage('No data to save. Add some examples first.', 'error'); return; }
+  const insufficient = Object.entries(feedLocalDataset).filter(([_,v])=>v.length<3).map(([k])=>k);
+  if (insufficient.length > 0) { showFeedMessage(`Warning: "${insufficient.join('", "')}" has fewer than 3 examples.`, 'error'); return; }
+  try {
+    const res = await fetch('http://localhost:3000/add', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ dataset: feedLocalDataset })
+    });
+    if (!res.ok) throw new Error();
+    const total = Object.values(feedLocalDataset).reduce((s,a)=>s+a.length,0);
+    showFeedMessage(`Dataset saved successfully! ${total} examples stored.`, 'success');
+    feedLocalDataset = {};
+    document.getElementById('labelInput').value = '';
+    updateFeedDatasetPanel();
+    feedFetchCurrentLabels();
+  } catch { showFeedMessage('Failed to save dataset. Make sure backend server is running on port 3000.', 'error'); }
+};
+
+window.feedLoadDataset = function() { document.getElementById('fileInput').click(); };
+
+window.feedHandleFileSelect = async function(e) {
+  const file = e.target.files?.[0]; if (!file) return;
+  try {
+    const text = await file.text();
+    let incoming;
+    try { const p = JSON.parse(text); incoming = p.dataset || p; } catch { showFeedMessage('Invalid JSON file.', 'error'); return; }
+    for (const label in incoming) { if (!Array.isArray(incoming[label])) { showFeedMessage(`Invalid data for "${label}"`, 'error'); return; } }
+
+    const res = await fetch('http://localhost:3000/check-conflicts', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ dataset: incoming })
+    });
+    if (!res.ok) throw new Error();
+    const result = await res.json();
+    if (result.hasConflicts) {
+      feedConflicts = result.conflicts; feedNewLabels = result.newLabels; feedPendingDataset = incoming;
+      feedConflictDecisions = {};
+      feedConflicts.forEach(c => { feedConflictDecisions[c.label] = false; });
+      renderConflictModal();
+    } else {
+      await feedMergeDirectly(incoming);
+    }
+  } catch { showFeedMessage('Failed to load dataset. Is backend running?', 'error'); }
+  e.target.value = '';
+};
+
+window.feedHandleReplaceFileSelect = async function(e) {
+  const file = e.target.files?.[0]; if (!file) return;
+  try {
+    const text = await file.text();
+    let incoming;
+    try { const p = JSON.parse(text); incoming = p.dataset || p; } catch { showFeedMessage('Invalid JSON file.', 'error'); return; }
+    for (const label in incoming) { if (!Array.isArray(incoming[label])) { showFeedMessage(`Invalid data for "${label}"`, 'error'); return; } }
+    feedPendingReplaceDataset = incoming;
+    document.getElementById('replaceModal').classList.remove('hidden');
+  } catch { showFeedMessage('Failed to read file.', 'error'); }
+  e.target.value = '';
+};
+
+async function feedMergeDirectly(incoming) {
+  try {
+    const res = await fetch('http://localhost:3000/merge-dataset', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ dataset: incoming, replacements: [], rejections: [] })
+    });
+    if (!res.ok) throw new Error();
+    showFeedMessage('Dataset loaded successfully!', 'success');
+    feedFetchCurrentLabels();
+  } catch { showFeedMessage('Failed to merge dataset.', 'error'); }
+}
+
+function renderConflictModal() {
+  const list = document.getElementById('conflictList');
+  list.innerHTML = feedConflicts.map(c => `
+    <div class="conflict-item" id="ci-${c.label}">
+      <div class="conflict-info">
+        <div class="conflict-label">${c.label}</div>
+        <div class="conflict-details">Existing: ${c.existingCount} | Incoming: ${c.incomingCount}</div>
       </div>
-    `).join('');
-    const nl = document.getElementById('newLabelsInfo');
-    if (feedNewLabels.length > 0) { nl.textContent = 'New gestures to be added: ' + feedNewLabels.join(', '); nl.classList.remove('hidden'); }
-    else nl.classList.add('hidden');
-    document.getElementById('conflictModal').classList.remove('hidden');
-  }
+      <div class="conflict-actions">
+        <button class="action-btn replace ${feedConflictDecisions[c.label]?'active':''}" onclick="feedSetConflictDecision('${c.label}', true)">Replace</button>
+        <button class="action-btn reject ${!feedConflictDecisions[c.label]?'active':''}" onclick="feedSetConflictDecision('${c.label}', false)">Keep Existing</button>
+      </div>
+    </div>
+  `).join('');
+  const nl = document.getElementById('newLabelsInfo');
+  if (feedNewLabels.length > 0) { nl.textContent = 'New gestures to be added: ' + feedNewLabels.join(', '); nl.classList.remove('hidden'); }
+  else nl.classList.add('hidden');
+  document.getElementById('conflictModal').classList.remove('hidden');
+}
 
-  window.feedSetConflictDecision = function(label, replace) {
-    feedConflictDecisions[label] = replace;
-    renderConflictModal();
-  };
+window.feedSetConflictDecision = function(label, replace) {
+  feedConflictDecisions[label] = replace;
+  renderConflictModal();
+};
 
-  window.feedConfirmMerge = async function() {
-    if (!feedPendingDataset) return;
-    const replacements = Object.entries(feedConflictDecisions).filter(([_,v])=>v).map(([k])=>k);
-    const rejections = Object.entries(feedConflictDecisions).filter(([_,v])=>!v).map(([k])=>k);
-    try {
-      const res = await fetch('http://localhost:3000/merge-dataset', {
-        method: 'POST', headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({ dataset: feedPendingDataset, replacements, rejections })
-      });
-      if (!res.ok) throw new Error();
-      const r = await res.json();
-      showFeedMessage(`Dataset merged! Added: ${r.addedCount}, Replaced: ${r.replacedCount}, Rejected: ${r.rejectedCount}`, 'success');
-      feedConflicts=[]; feedNewLabels=[]; feedPendingDataset=null; feedConflictDecisions={};
-      document.getElementById('conflictModal').classList.add('hidden');
-      feedFetchCurrentLabels();
-    } catch { showFeedMessage('Failed to merge dataset.', 'error'); }
-  };
-
-  window.feedCancelMerge = function() {
+window.feedConfirmMerge = async function() {
+  if (!feedPendingDataset) return;
+  const replacements = Object.entries(feedConflictDecisions).filter(([_,v])=>v).map(([k])=>k);
+  const rejections = Object.entries(feedConflictDecisions).filter(([_,v])=>!v).map(([k])=>k);
+  try {
+    const res = await fetch('http://localhost:3000/merge-dataset', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ dataset: feedPendingDataset, replacements, rejections })
+    });
+    if (!res.ok) throw new Error();
+    const r = await res.json();
+    showFeedMessage(`Dataset merged! Added: ${r.addedCount}, Replaced: ${r.replacedCount}, Rejected: ${r.rejectedCount}`, 'success');
     feedConflicts=[]; feedNewLabels=[]; feedPendingDataset=null; feedConflictDecisions={};
     document.getElementById('conflictModal').classList.add('hidden');
-    showFeedMessage('Dataset load cancelled', 'info');
-  };
+    feedFetchCurrentLabels();
+  } catch { showFeedMessage('Failed to merge dataset.', 'error'); }
+};
 
-  window.feedFetchStats = async function() {
+window.feedCancelMerge = function() {
+  feedConflicts=[]; feedNewLabels=[]; feedPendingDataset=null; feedConflictDecisions={};
+  document.getElementById('conflictModal').classList.add('hidden');
+  showFeedMessage('Dataset load cancelled', 'info');
+};
+
+window.feedFetchStats = async function() {
+  try {
+    const res = await fetch('http://localhost:3000/stats');
+    if (!res.ok) throw new Error();
+    const data = await res.json();
+    document.getElementById('statsTotalGestures').textContent = data.totalGestures;
+    document.getElementById('statsTotalExamples').textContent = data.totalExamples;
+    const content = document.getElementById('gestureListContent');
+    content.innerHTML = data.gestures.map(g => `
+      <div class="gesture-stat-item">
+        <span class="gesture-label">${g.label}</span>
+        <span class="gesture-count">${g.count} examples</span>
+        ${!PREDEFINED_GESTURES.includes(g.label) ? `<button class="delete-gesture-btn" onclick="feedAskDeleteGesture('${g.label}')">Delete</button>` : ''}
+      </div>
+    `).join('');
+    document.getElementById('statsModal').classList.remove('hidden');
+  } catch { showFeedMessage('Failed to fetch stats. Is backend running?', 'error'); }
+};
+
+window.feedAskDeleteGesture = function(label) {
+  feedDeleteTarget = label;
+  document.getElementById('statsModal').classList.add('hidden');
+  document.getElementById('deleteModalMsg').textContent = `Are you sure you want to delete gesture "${label}"?`;
+  document.getElementById('deleteModal').classList.remove('hidden');
+};
+
+window.feedConfirmClearDB = function() {
+  feedDeleteTarget = 'database';
+  document.getElementById('deleteModalMsg').textContent = 'Are you sure you want to clear the entire database? This action cannot be undone.';
+  document.getElementById('deleteModal').classList.remove('hidden');
+};
+
+window.feedConfirmDelete = async function() {
+  if (feedDeleteTarget === 'database') {
     try {
-      const res = await fetch('http://localhost:3000/stats');
+      const res = await fetch('http://localhost:3000/clear-database', { method: 'POST' });
       if (!res.ok) throw new Error();
-      const data = await res.json();
-      document.getElementById('statsTotalGestures').textContent = data.totalGestures;
-      document.getElementById('statsTotalExamples').textContent = data.totalExamples;
-      const content = document.getElementById('gestureListContent');
-      content.innerHTML = data.gestures.map(g => `
-        <div class="gesture-stat-item">
-          <span class="gesture-label">${g.label}</span>
-          <span class="gesture-count">${g.count} examples</span>
-          ${!PREDEFINED_GESTURES.includes(g.label) ? `<button class="delete-gesture-btn" onclick="feedAskDeleteGesture('${g.label}')">Delete</button>` : ''}
-        </div>
-      `).join('');
-      document.getElementById('statsModal').classList.remove('hidden');
-    } catch { showFeedMessage('Failed to fetch stats. Is backend running?', 'error'); }
-  };
-
-  window.feedAskDeleteGesture = function(label) {
-    feedDeleteTarget = label;
-    document.getElementById('statsModal').classList.add('hidden');
-    document.getElementById('deleteModalMsg').textContent = `Are you sure you want to delete gesture "${label}"?`;
-    document.getElementById('deleteModal').classList.remove('hidden');
-  };
-
-  window.feedConfirmClearDB = function() {
-    feedDeleteTarget = 'database';
-    document.getElementById('deleteModalMsg').textContent = 'Are you sure you want to clear the entire database? This action cannot be undone.';
-    document.getElementById('deleteModal').classList.remove('hidden');
-  };
-
-  window.feedConfirmDelete = async function() {
-    if (feedDeleteTarget === 'database') {
-      try {
-        const res = await fetch('http://localhost:3000/clear-database', { method: 'POST' });
-        if (!res.ok) throw new Error();
-        showFeedMessage('Database cleared successfully!', 'success');
-        feedFetchCurrentLabels();
-      } catch { showFeedMessage('Failed to clear database.', 'error'); }
-    } else if (feedDeleteTarget) {
-      try {
-        const res = await fetch('http://localhost:3000/delete-gesture', {
-          method: 'POST', headers: {'Content-Type':'application/json'},
-          body: JSON.stringify({ label: feedDeleteTarget })
-        });
-        if (!res.ok) throw new Error();
-        showFeedMessage(`Deleted gesture: ${feedDeleteTarget}`, 'success');
-        feedFetchCurrentLabels();
-      } catch { showFeedMessage('Failed to delete gesture.', 'error'); }
-    }
-    document.getElementById('deleteModal').classList.add('hidden');
-    feedDeleteTarget = null;
-  };
-
-  window.feedCancelDelete = function() {
-    document.getElementById('deleteModal').classList.add('hidden');
-    feedDeleteTarget = null;
-  };
-
-  window.feedConfirmReplace = async function() {
-    if (!feedPendingReplaceDataset) return;
-    try {
-      const res = await fetch('http://localhost:3000/replace-dataset', {
-        method: 'POST', headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({ dataset: feedPendingReplaceDataset })
-      });
-      if (!res.ok) throw new Error();
-      showFeedMessage('Database replaced successfully!', 'success');
-      feedPendingReplaceDataset = null;
-      document.getElementById('replaceModal').classList.add('hidden');
+      showFeedMessage('Database cleared successfully!', 'success');
       feedFetchCurrentLabels();
-    } catch { showFeedMessage('Failed to replace dataset.', 'error'); }
-  };
-
-  document.getElementById('labelInput').addEventListener('keydown', e => { if (e.key === 'Enter') feedAddExample(); });
-
-  // ════════════════════════════════════════════════════════════
-  //  CONVERT PAGE
-  // ════════════════════════════════════════════════════════════
-
-  async function initConvert() {
-    await Promise.all([initConvertLandmarkers(), enableConvertWebcam(), cvtFetchDataset()]);
-  }
-
-  async function initConvertLandmarkers() {
+    } catch { showFeedMessage('Failed to clear database.', 'error'); }
+  } else if (feedDeleteTarget) {
     try {
-      const vision = await FilesetResolver.forVisionTasks(
-        'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm'
-      );
-      cvtHandLandmarker = await HandLandmarker.createFromOptions(vision, {
-        baseOptions: {
-          modelAssetPath: 'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task',
-          delegate: 'GPU',
-        },
-        runningMode: 'VIDEO', numHands: 2,
+      const res = await fetch('http://localhost:3000/delete-gesture', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ label: feedDeleteTarget })
       });
-      cvtPoseLandmarker = await PoseLandmarker.createFromOptions(vision, {
-        baseOptions: {
-          modelAssetPath: 'https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task',
-          delegate: 'GPU',
-        },
-        runningMode: 'VIDEO', numPoses: 1,
-      });
-    } catch { showConvertError('Failed to load gesture model. Refresh the page.'); }
-  }
-
-  async function enableConvertWebcam() {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { width:640, height:480 } });
-      const video = document.getElementById('convertVideo');
-      video.srcObject = stream;
-      video.onloadedmetadata = () => video.play();
-      video.onloadeddata = () => {
-        const canvas = document.getElementById('convertCanvas');
-        canvas.width = video.videoWidth || 640;
-        canvas.height = video.videoHeight || 480;
-        let rawLoopActive = true;
-        function drawRaw() {
-          if (!rawLoopActive) return;
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-          requestAnimationFrame(drawRaw);
-        }
-        drawRaw();
-        function tryStartPrediction() {
-          if (cvtHandLandmarker && cvtPoseLandmarker) {
-            rawLoopActive = false;
-            cvtPredictWebcam();
-          } else {
-            setTimeout(tryStartPrediction, 200);
-          }
-        }
-        tryStartPrediction();
-      };
-    } catch { showConvertError('Camera access denied. Please allow camera permission.'); }
-  }
-
-  async function cvtFetchDataset() {
-    try {
-      const res = await fetch('http://localhost:3000/fetch');
       if (!res.ok) throw new Error();
-      cvtDataset = await res.json();
-      document.getElementById('convert-loading').classList.add('hidden');
-    } catch {
-      showConvertError('Cannot reach backend (port 3000).');
-    }
+      showFeedMessage(`Deleted gesture: ${feedDeleteTarget}`, 'success');
+      feedFetchCurrentLabels();
+    } catch { showFeedMessage('Failed to delete gesture.', 'error'); }
   }
+  document.getElementById('deleteModal').classList.add('hidden');
+  feedDeleteTarget = null;
+};
 
-  function showConvertError(msg) {
-    cvtError = true;
-    const el = document.getElementById('convert-error');
-    el.textContent = msg; el.classList.remove('hidden');
-    document.getElementById('convert-loading').classList.add('hidden');
-  }
+window.feedCancelDelete = function() {
+  document.getElementById('deleteModal').classList.add('hidden');
+  feedDeleteTarget = null;
+};
 
-  function cvtDrawLandmarks(handResults, poseResults) {
-    const canvas = document.getElementById('convertCanvas');
-    const video = document.getElementById('convertVideo');
-    if (!canvas || !video) return;
-    const ctx = canvas.getContext('2d');
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-    ctx.drawImage(video,0,0,canvas.width,canvas.height);
-
-    if (handResults?.landmarks?.length > 0) {
-      const connections = [[0,1],[1,2],[2,3],[3,4],[0,5],[5,6],[6,7],[7,8],[5,9],[9,10],[10,11],[11,12],[9,13],[13,14],[14,15],[15,16],[13,17],[17,18],[18,19],[19,20],[0,17]];
-      for (const landmarks of handResults.landmarks) {
-        ctx.strokeStyle='#00FF00'; ctx.lineWidth=2;
-        for (const [a,b] of connections) {
-          ctx.beginPath(); ctx.moveTo(landmarks[a].x*canvas.width,landmarks[a].y*canvas.height);
-          ctx.lineTo(landmarks[b].x*canvas.width,landmarks[b].y*canvas.height); ctx.stroke();
-        }
-        ctx.fillStyle='#FF0000';
-        for (const lm of landmarks) { ctx.beginPath(); ctx.arc(lm.x*canvas.width,lm.y*canvas.height,4,0,Math.PI*2); ctx.fill(); }
-      }
-    }
-    if (poseResults?.landmarks?.length > 0) {
-      const pl = poseResults.landmarks[0];
-      ctx.strokeStyle='#00FFFF'; ctx.lineWidth=3;
-      const s=pl[11],e=pl[12];
-      if(s&&e){ctx.beginPath();ctx.moveTo(s.x*canvas.width,s.y*canvas.height);ctx.lineTo(e.x*canvas.width,e.y*canvas.height);ctx.stroke();}
-      ctx.fillStyle='#FFFF00';
-      for(const idx of [0,11,12]){const lm=pl[idx];if(lm){ctx.beginPath();ctx.arc(lm.x*canvas.width,lm.y*canvas.height,6,0,Math.PI*2);ctx.fill();}}
-    }
-  }
-
-  function euclideanDistance(a, b) {
-    let sum = 0; const minLen = Math.min(a.length, b.length);
-    for (let i=0;i<minLen;i++) sum += (a[i]-b[i])**2;
-    return Math.sqrt(sum);
-  }
-
-  function cvtPredictGesture(features) {
-    const k = 3;
-    const distances = [];
-    for (const label in cvtDataset) {
-      for (const example of cvtDataset[label]) {
-        distances.push({ label, dist: euclideanDistance(features, example) });
-      }
-    }
-    if (!distances.length) return null;
-    distances.sort((a,b) => a.dist-b.dist);
-    const nearest = distances.slice(0, k);
-    const votes = {};
-    for (const {label} of nearest) votes[label] = (votes[label]||0) + 1;
-    let maxVotes=0, predictedLabel='';
-    for (const label in votes) { if (votes[label] > maxVotes) { maxVotes=votes[label]; predictedLabel=label; } }
-    return { label: predictedLabel, confidence: maxVotes/k };
-  }
-
-  function cvtProcessBuffer() {
-    const now = performance.now();
-    frameBuffer = frameBuffer.filter(f => f.time > now - WINDOW_DURATION);
-    if (!frameBuffer.length) {
-      if (cvtGesture !== '') lastSpoken = '';
-      cvtGesture=''; cvtTranslatedGesture=''; cvtConfidence=0;
-      updateConvertUI();
-      return;
-    }
-    const votes = {};
-    frameBuffer.forEach(f => votes[f.label]=(votes[f.label]||0)+1);
-    let max=0, best='';
-    for (const lbl in votes) { if(votes[lbl]>max){max=votes[lbl];best=lbl;} }
-    const conf = max/frameBuffer.length;
-    cvtGesture = best; cvtConfidence = conf;
-    updateConvertUI();
-    cvtSpeak(best);
-  }
-
-  function updateConvertUI() {
-    document.getElementById('resultGesture').textContent = cvtTranslatedGesture || (cvtGesture ? cvtGesture : 'Waiting...');
-    document.getElementById('resultConfidence').textContent = `Confidence: ${Math.round(cvtConfidence*100)}%`;
-    document.getElementById('confidenceFill').style.width = `${cvtConfidence*100}%`;
-  }
-
-  async function cvtSpeak(text) {
-    if (!text) { cvtTranslatedGesture=''; updateConvertUI(); return; }
-    const now = Date.now();
-    if (isSpeaking) return;
-    if (text===lastSpoken && now-lastSpeakTime < 1500) return;
-    isSpeaking=true; lastSpoken=text; lastSpeakTime=now;
-
-    let spokenText = text;
-    if (targetLang !== 'en') {
-      spokenText = await translateText(text, targetLang);
-    }
-    cvtTranslatedGesture = spokenText;
-    updateConvertUI();
-
-    if (spokenText) {
-      const last = cvtTranscript[cvtTranscript.length-1];
-      if (!last || last.text !== spokenText) {
-        cvtTranscript.push({ id: `${Date.now()}-${Math.random()}`, text: spokenText });
-        renderSentenceBuilder();
-      }
-    }
-
-    await speakUtterance(spokenText, targetLang);
-    isSpeaking = false;
-  }
-
-  async function speakUtterance(text, lang) {
-    const langMap = { en:'en-US',es:'es-ES',fr:'fr-FR',de:'de-DE',zh:'zh-CN',ja:'ja-JP',ko:'ko-KR',hi:'hi-IN',id:'id-ID',pt:'pt-BR',it:'it-IT',ru:'ru-RU',nl:'nl-NL',sv:'sv-SE',pl:'pl-PL',tr:'tr-TR',cs:'cs-CZ',el:'el-GR',hu:'hu-HU',ro:'ro-RO',bg:'bg-BG',uk:'uk-UA',fi:'fi-FI',da:'da-DK',ar:'ar-SA' };
-    try {
-      speechSynthesis.cancel();
-      await new Promise(r => setTimeout(r,100));
-      if (!speechSynthesis.getVoices().length) {
-        await new Promise(resolve => { speechSynthesis.onvoiceschanged=()=>{speechSynthesis.onvoiceschanged=null;resolve();}; });
-      }
-      const utter = new SpeechSynthesisUtterance(text);
-      const bcp = langMap[lang] || lang;
-      utter.lang = bcp; utter.rate=0.9; utter.pitch=1; utter.volume=1;
-      const voices = speechSynthesis.getVoices();
-      const voice = voices.find(v=>v.lang.startsWith(lang)) || voices.find(v=>v.lang.startsWith(bcp.split('-')[0])) || voices[0];
-      if (voice) utter.voice = voice;
-      utter.onend = () => { isSpeaking=false; };
-      utter.onerror = () => { isSpeaking=false; };
-      speechSynthesis.speak(utter);
-    } catch { isSpeaking=false; }
-  }
-
-  async function cvtPredictWebcam() {
-    const video = document.getElementById('convertVideo');
-    if (!video||!cvtHandLandmarker||!cvtPoseLandmarker) return;
-    const now = performance.now();
-    try {
-      if (video.currentTime !== cvtLastVideoTime) {
-        cvtLastVideoTime = video.currentTime;
-        if (now - lastFrameTime >= FRAME_INTERVAL) {
-          lastFrameTime = now;
-          const hr = await cvtHandLandmarker.detectForVideo(video, now);
-          const pr = await cvtPoseLandmarker.detectForVideo(video, now);
-          cvtDrawLandmarks(hr, pr);
-
-          if (hr.landmarks?.[0] && Object.keys(cvtDataset).length) {
-            const feats = [];
-            for (const hl of hr.landmarks) for (const lm of hl) feats.push(lm.x, lm.y, lm.z);
-            if (pr.landmarks?.length > 0) {
-              const pl = pr.landmarks[0];
-              for (const idx of [0,11,12]) { const lm=pl[idx]; if(lm) feats.push(lm.x,lm.y,lm.z,lm.visibility||0); else feats.push(0,0,0,0); }
-            } else feats.push(...Array(12).fill(0));
-
-            const pred = cvtPredictGesture(feats);
-            if (pred && pred.confidence > 0.6) frameBuffer.push({ label: pred.label, time: now });
-          }
-          if (now - lastProcessTime >= WINDOW_DURATION) { lastProcessTime=now; cvtProcessBuffer(); }
-        }
-      }
-    } catch {}
-    cvtAnimFrame = requestAnimationFrame(cvtPredictWebcam);
-  }
-
-  async function translateText(text, lang) {
-    if (!text.trim() || lang==='en') return text;
-    try {
-      const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=${lang}&dt=t&q=${encodeURIComponent(text)}`);
-      const data = await res.json();
-      return data[0]?.[0]?.[0] || text;
-    } catch { return text; }
-  }
-
-  async function translateToEnglish(text) {
-    if (!text.trim()) return text;
-    try {
-      const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=en&dt=t&q=${encodeURIComponent(text)}`);
-      const data = await res.json();
-      return data[0]?.[0]?.[0] || text;
-    } catch { return text; }
-  }
-
-  async function fixGrammar(text) {
-    try {
-      const res = await fetch('https://api.languagetool.org/v2/check', {
-        method: 'POST', headers: {'Content-Type':'application/x-www-form-urlencoded'},
-        body: `text=${encodeURIComponent(text)}&language=auto`
-      });
-      if (!res.ok) return text;
-      const data = await res.json();
-      let corrected = text;
-      if (data.matches?.length > 0) {
-        const matches = data.matches.sort((a,b)=>b.offset-a.offset);
-        for (const match of matches) {
-          if (match.replacements?.length > 0) {
-            const repl = match.replacements[0].value;
-            corrected = corrected.slice(0,match.offset) + repl + corrected.slice(match.offset+match.length);
-          }
-        }
-      }
-      return corrected;
-    } catch { return text; }
-  }
-
-  window.convertSetLang = function(val) { targetLang = val; };
-
-  window.convertCompleteSentence = async function() {
-    if (!cvtTranscript.length) return;
-    const rawSentence = cvtTranscript.map(w=>w.text).join(' ');
-    const englishSentence = await translateToEnglish(rawSentence);
-    const corrected = await fixGrammar(englishSentence);
-    let finalSentence = corrected;
-    if (targetLang !== 'en') finalSentence = await translateText(corrected, targetLang);
-    cvtCompletedSentences.push(finalSentence);
-    cvtTranscript = [];
-    renderSentenceBuilder();
-    renderCompletedSentences();
-    document.getElementById('downloadTranscriptBtn').disabled = false;
-    await speakUtterance(finalSentence, targetLang);
-  };
-
-  window.convertDownloadTranscript = function() {
-    if (!cvtCompletedSentences.length) return;
-    const allText = cvtCompletedSentences.join('\n\n---\n\n');
-    const blob = new Blob([allText], {type:'text/plain'});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href=url; a.download=`sentences-${new Date().toISOString().split('T')[0]}.txt`;
-    document.body.appendChild(a); a.click(); document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
-
-  function renderSentenceBuilder() {
-    const empty = document.getElementById('sentenceEmpty');
-    const container = document.getElementById('sentenceContainer');
-    const btn = document.getElementById('completeSentenceBtn');
-    if (!cvtTranscript.length) {
-      empty.style.display=''; container.style.display='none'; btn.disabled=true; return;
-    }
-    empty.style.display='none'; container.style.display='flex'; btn.disabled=false;
-    container.innerHTML = cvtTranscript.map((word,index) => `
-      <span class="gesture-word-item ${cvtDraggedItem===word.id?'dragging':''}"
-        draggable="true"
-        data-id="${word.id}"
-        onmouseenter="cvtHoverWord('${word.id}')"
-        onmouseleave="cvtUnhoverWord()">
-        ${word.text}
-        <button class="gesture-word-delete-btn" onclick="cvtDeleteWord('${word.id}')">x</button>
-      </span>
-      ${index < cvtTranscript.length-1 ? ' ' : ''}
-    `).join('');
-
-    container.querySelectorAll('.gesture-word-item').forEach(el => {
-      el.addEventListener('dragstart', e => {
-        cvtDraggedItem = el.dataset.id;
-        e.dataTransfer.effectAllowed = 'move';
-      });
-      el.addEventListener('dragover', e => {
-        e.preventDefault(); e.dataTransfer.dropEffect='move';
-        const targetId = el.dataset.id;
-        if (cvtDraggedItem && cvtDraggedItem !== targetId) {
-          const di = cvtTranscript.findIndex(w=>w.id===cvtDraggedItem);
-          const ti = cvtTranscript.findIndex(w=>w.id===targetId);
-          if (di!==-1 && ti!==-1) {
-            const newT = [...cvtTranscript];
-            const [removed] = newT.splice(di,1); newT.splice(ti,0,removed);
-            cvtTranscript = newT; renderSentenceBuilder();
-          }
-        }
-      });
-      el.addEventListener('dragend', () => { cvtDraggedItem=null; renderSentenceBuilder(); });
+window.feedConfirmReplace = async function() {
+  if (!feedPendingReplaceDataset) return;
+  try {
+    const res = await fetch('http://localhost:3000/replace-dataset', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ dataset: feedPendingReplaceDataset })
     });
+    if (!res.ok) throw new Error();
+    showFeedMessage('Database replaced successfully!', 'success');
+    feedPendingReplaceDataset = null;
+    document.getElementById('replaceModal').classList.add('hidden');
+    feedFetchCurrentLabels();
+  } catch { showFeedMessage('Failed to replace dataset.', 'error'); }
+};
+
+document.getElementById('labelInput').addEventListener('keydown', e => { if (e.key === 'Enter') feedAddExample(); });
+
+// ════════════════════════════════════════════════════════════
+//  CONVERT PAGE
+// ════════════════════════════════════════════════════════════
+
+async function initConvert() {
+  await Promise.all([initConvertLandmarkers(), enableConvertWebcam(), cvtFetchDataset()]);
+}
+
+async function initConvertLandmarkers() {
+  try {
+    const vision = await FilesetResolver.forVisionTasks(
+      'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm'
+    );
+    cvtHandLandmarker = await HandLandmarker.createFromOptions(vision, {
+      baseOptions: {
+        modelAssetPath: 'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task',
+        delegate: 'GPU',
+      },
+      runningMode: 'VIDEO', numHands: 2,
+    });
+    cvtPoseLandmarker = await PoseLandmarker.createFromOptions(vision, {
+      baseOptions: {
+        modelAssetPath: 'https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task',
+        delegate: 'GPU',
+      },
+      runningMode: 'VIDEO', numPoses: 1,
+    });
+  } catch { showConvertError('Failed to load gesture model. Refresh the page.'); }
+}
+
+async function enableConvertWebcam() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ video: { width:640, height:480 } });
+    const video = document.getElementById('convertVideo');
+    video.srcObject = stream;
+    video.onloadedmetadata = () => video.play();
+    video.onloadeddata = () => {
+      const canvas = document.getElementById('convertCanvas');
+      canvas.width = video.videoWidth || 640;
+      canvas.height = video.videoHeight || 480;
+      let rawLoopActive = true;
+      function drawRaw() {
+        if (!rawLoopActive) return;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        requestAnimationFrame(drawRaw);
+      }
+      drawRaw();
+      function tryStartPrediction() {
+        if (cvtHandLandmarker && cvtPoseLandmarker) {
+          rawLoopActive = false;
+          cvtPredictWebcam();
+        } else {
+          setTimeout(tryStartPrediction, 200);
+        }
+      }
+      tryStartPrediction();
+    };
+  } catch { showConvertError('Camera access denied. Please allow camera permission.'); }
+}
+
+async function cvtFetchDataset() {
+  try {
+    const res = await fetch('http://localhost:3000/fetch');
+    if (!res.ok) throw new Error();
+    cvtDataset = await res.json();
+    document.getElementById('convert-loading').classList.add('hidden');
+  } catch {
+    showConvertError('Cannot reach backend (port 3000).');
+  }
+}
+
+function showConvertError(msg) {
+  cvtError = true;
+  const el = document.getElementById('convert-error');
+  el.textContent = msg; el.classList.remove('hidden');
+  document.getElementById('convert-loading').classList.add('hidden');
+}
+
+function cvtDrawLandmarks(handResults, poseResults) {
+  const canvas = document.getElementById('convertCanvas');
+  const video = document.getElementById('convertVideo');
+  if (!canvas || !video) return;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.drawImage(video,0,0,canvas.width,canvas.height);
+
+  if (handResults?.landmarks?.length > 0) {
+    const connections = [[0,1],[1,2],[2,3],[3,4],[0,5],[5,6],[6,7],[7,8],[5,9],[9,10],[10,11],[11,12],[9,13],[13,14],[14,15],[15,16],[13,17],[17,18],[18,19],[19,20],[0,17]];
+    for (const landmarks of handResults.landmarks) {
+      ctx.strokeStyle='#00FF00'; ctx.lineWidth=2;
+      for (const [a,b] of connections) {
+        ctx.beginPath(); ctx.moveTo(landmarks[a].x*canvas.width,landmarks[a].y*canvas.height);
+        ctx.lineTo(landmarks[b].x*canvas.width,landmarks[b].y*canvas.height); ctx.stroke();
+      }
+      ctx.fillStyle='#FF0000';
+      for (const lm of landmarks) { ctx.beginPath(); ctx.arc(lm.x*canvas.width,lm.y*canvas.height,4,0,Math.PI*2); ctx.fill(); }
+    }
+  }
+  if (poseResults?.landmarks?.length > 0) {
+    const pl = poseResults.landmarks[0];
+    ctx.strokeStyle='#00FFFF'; ctx.lineWidth=3;
+    const s=pl[11],e=pl[12];
+    if(s&&e){ctx.beginPath();ctx.moveTo(s.x*canvas.width,s.y*canvas.height);ctx.lineTo(e.x*canvas.width,e.y*canvas.height);ctx.stroke();}
+    ctx.fillStyle='#FFFF00';
+    for(const idx of [0,11,12]){const lm=pl[idx];if(lm){ctx.beginPath();ctx.arc(lm.x*canvas.width,lm.y*canvas.height,6,0,Math.PI*2);ctx.fill();}}
+  }
+}
+
+function euclideanDistance(a, b) {
+  let sum = 0; const minLen = Math.min(a.length, b.length);
+  for (let i=0;i<minLen;i++) sum += (a[i]-b[i])**2;
+  return Math.sqrt(sum);
+}
+
+function cvtPredictGesture(features) {
+  const k = 3;
+  const distances = [];
+  for (const label in cvtDataset) {
+    for (const example of cvtDataset[label]) {
+      distances.push({ label, dist: euclideanDistance(features, example) });
+    }
+  }
+  if (!distances.length) return null;
+  distances.sort((a,b) => a.dist-b.dist);
+  const nearest = distances.slice(0, k);
+  const votes = {};
+  for (const {label} of nearest) votes[label] = (votes[label]||0) + 1;
+  let maxVotes=0, predictedLabel='';
+  for (const label in votes) { if (votes[label] > maxVotes) { maxVotes=votes[label]; predictedLabel=label; } }
+  return { label: predictedLabel, confidence: maxVotes/k };
+}
+
+function cvtProcessBuffer() {
+  const now = performance.now();
+  frameBuffer = frameBuffer.filter(f => f.time > now - WINDOW_DURATION);
+  if (!frameBuffer.length) {
+    if (cvtGesture !== '') lastSpoken = '';
+    cvtGesture=''; cvtTranslatedGesture=''; cvtConfidence=0;
+    updateConvertUI();
+    return;
+  }
+  const votes = {};
+  frameBuffer.forEach(f => votes[f.label]=(votes[f.label]||0)+1);
+  let max=0, best='';
+  for (const lbl in votes) { if(votes[lbl]>max){max=votes[lbl];best=lbl;} }
+  const conf = max/frameBuffer.length;
+  cvtGesture = best; cvtConfidence = conf;
+  updateConvertUI();
+  cvtSpeak(best);
+}
+
+function updateConvertUI() {
+  document.getElementById('resultGesture').textContent = cvtTranslatedGesture || (cvtGesture ? cvtGesture : 'Waiting...');
+  document.getElementById('resultConfidence').textContent = `Confidence: ${Math.round(cvtConfidence*100)}%`;
+  document.getElementById('confidenceFill').style.width = `${cvtConfidence*100}%`;
+}
+
+async function cvtSpeak(text) {
+  if (!text) { cvtTranslatedGesture=''; updateConvertUI(); return; }
+  const now = Date.now();
+  if (isSpeaking) return;
+  if (text===lastSpoken && now-lastSpeakTime < 1500) return;
+  isSpeaking=true; lastSpoken=text; lastSpeakTime=now;
+
+  let spokenText = text;
+  if (targetLang !== 'en') {
+    spokenText = await translateText(text, targetLang);
+  }
+  cvtTranslatedGesture = spokenText;
+  updateConvertUI();
+
+  if (spokenText) {
+    const last = cvtTranscript[cvtTranscript.length-1];
+    if (!last || last.text !== spokenText) {
+      cvtTranscript.push({ id: `${Date.now()}-${Math.random()}`, text: spokenText });
+      renderSentenceBuilder();
+    }
   }
 
-  window.cvtDeleteWord = function(id) {
-    cvtTranscript = cvtTranscript.filter(w=>w.id!==id);
-    renderSentenceBuilder();
-  };
-  window.cvtHoverWord = function(id) { cvtHoveredWord=id; };
-  window.cvtUnhoverWord = function() { cvtHoveredWord=null; };
+  await speakUtterance(spokenText, targetLang);
+  isSpeaking = false;
+}
 
-  function renderCompletedSentences() {
-    const empty = document.getElementById('transcriptEmpty');
-    const container = document.getElementById('completedSentencesContainer');
-    if (!cvtCompletedSentences.length) { empty.style.display=''; container.innerHTML=''; return; }
-    empty.style.display='none';
-    container.innerHTML = cvtCompletedSentences.map((s,i) => `
-      <div class="sentence-item"><span class="sentence-num">${i+1}.</span>${s}</div>
-    `).join('');
+async function speakUtterance(text, lang) {
+  const langMap = { en:'en-US',es:'es-ES',fr:'fr-FR',de:'de-DE',zh:'zh-CN',ja:'ja-JP',ko:'ko-KR',hi:'hi-IN',id:'id-ID',pt:'pt-BR',it:'it-IT',ru:'ru-RU',nl:'nl-NL',sv:'sv-SE',pl:'pl-PL',tr:'tr-TR',cs:'cs-CZ',el:'el-GR',hu:'hu-HU',ro:'ro-RO',bg:'bg-BG',uk:'uk-UA',fi:'fi-FI',da:'da-DK',ar:'ar-SA' };
+  try {
+    speechSynthesis.cancel();
+    await new Promise(r => setTimeout(r,100));
+    if (!speechSynthesis.getVoices().length) {
+      await new Promise(resolve => { speechSynthesis.onvoiceschanged=()=>{speechSynthesis.onvoiceschanged=null;resolve();}; });
+    }
+    const utter = new SpeechSynthesisUtterance(text);
+    const bcp = langMap[lang] || lang;
+    utter.lang = bcp; utter.rate=0.9; utter.pitch=1; utter.volume=1;
+    const voices = speechSynthesis.getVoices();
+    const voice = voices.find(v=>v.lang.startsWith(lang)) || voices.find(v=>v.lang.startsWith(bcp.split('-')[0])) || voices[0];
+    if (voice) utter.voice = voice;
+    utter.onend = () => { isSpeaking=false; };
+    utter.onerror = () => { isSpeaking=false; };
+    speechSynthesis.speak(utter);
+  } catch { isSpeaking=false; }
+}
+
+async function cvtPredictWebcam() {
+  const video = document.getElementById('convertVideo');
+  if (!video||!cvtHandLandmarker||!cvtPoseLandmarker) return;
+  const now = performance.now();
+  try {
+    if (video.currentTime !== cvtLastVideoTime) {
+      cvtLastVideoTime = video.currentTime;
+      if (now - lastFrameTime >= FRAME_INTERVAL) {
+        lastFrameTime = now;
+        const hr = await cvtHandLandmarker.detectForVideo(video, now);
+        const pr = await cvtPoseLandmarker.detectForVideo(video, now);
+        cvtDrawLandmarks(hr, pr);
+
+        if (hr.landmarks?.[0] && Object.keys(cvtDataset).length) {
+          const feats = [];
+          for (const hl of hr.landmarks) for (const lm of hl) feats.push(lm.x, lm.y, lm.z);
+          if (pr.landmarks?.length > 0) {
+            const pl = pr.landmarks[0];
+            for (const idx of [0,11,12]) { const lm=pl[idx]; if(lm) feats.push(lm.x,lm.y,lm.z,lm.visibility||0); else feats.push(0,0,0,0); }
+          } else feats.push(...Array(12).fill(0));
+
+          const pred = cvtPredictGesture(feats);
+          if (pred && pred.confidence > 0.6) frameBuffer.push({ label: pred.label, time: now });
+        }
+        if (now - lastProcessTime >= WINDOW_DURATION) { lastProcessTime=now; cvtProcessBuffer(); }
+      }
+    }
+  } catch {}
+  cvtAnimFrame = requestAnimationFrame(cvtPredictWebcam);
+}
+
+async function translateText(text, lang) {
+  if (!text.trim() || lang==='en') return text;
+  try {
+    const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=${lang}&dt=t&q=${encodeURIComponent(text)}`);
+    const data = await res.json();
+    return data[0]?.[0]?.[0] || text;
+  } catch { return text; }
+}
+
+async function translateToEnglish(text) {
+  if (!text.trim()) return text;
+  try {
+    const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=en&dt=t&q=${encodeURIComponent(text)}`);
+    const data = await res.json();
+    return data[0]?.[0]?.[0] || text;
+  } catch { return text; }
+}
+
+async function fixGrammar(text) {
+  try {
+    const res = await fetch('https://api.languagetool.org/v2/check', {
+      method: 'POST', headers: {'Content-Type':'application/x-www-form-urlencoded'},
+      body: `text=${encodeURIComponent(text)}&language=auto`
+    });
+    if (!res.ok) return text;
+    const data = await res.json();
+    let corrected = text;
+    if (data.matches?.length > 0) {
+      const matches = data.matches.sort((a,b)=>b.offset-a.offset);
+      for (const match of matches) {
+        if (match.replacements?.length > 0) {
+          const repl = match.replacements[0].value;
+          corrected = corrected.slice(0,match.offset) + repl + corrected.slice(match.offset+match.length);
+        }
+      }
+    }
+    return corrected;
+  } catch { return text; }
+}
+
+window.convertSetLang = function(val) { targetLang = val; };
+
+window.convertCompleteSentence = async function() {
+  if (!cvtTranscript.length) return;
+  const rawSentence = cvtTranscript.map(w=>w.text).join(' ');
+  const englishSentence = await translateToEnglish(rawSentence);
+  const corrected = await fixGrammar(englishSentence);
+  let finalSentence = corrected;
+  if (targetLang !== 'en') finalSentence = await translateText(corrected, targetLang);
+  cvtCompletedSentences.push(finalSentence);
+  cvtTranscript = [];
+  renderSentenceBuilder();
+  renderCompletedSentences();
+  document.getElementById('downloadTranscriptBtn').disabled = false;
+  await speakUtterance(finalSentence, targetLang);
+};
+
+window.convertDownloadTranscript = function() {
+  if (!cvtCompletedSentences.length) return;
+  const allText = cvtCompletedSentences.join('\n\n---\n\n');
+  const blob = new Blob([allText], {type:'text/plain'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href=url; a.download=`sentences-${new Date().toISOString().split('T')[0]}.txt`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+};
+
+function renderSentenceBuilder() {
+  const empty = document.getElementById('sentenceEmpty');
+  const container = document.getElementById('sentenceContainer');
+  const btn = document.getElementById('completeSentenceBtn');
+  if (!cvtTranscript.length) {
+    empty.style.display=''; container.style.display='none'; btn.disabled=true; return;
   }
-</script>
-</html>
-Installation & Running
-Backend Setup:
-bash
+  empty.style.display='none'; container.style.display='flex'; btn.disabled=false;
+  container.innerHTML = cvtTranscript.map((word,index) => `
+    <span class="gesture-word-item ${cvtDraggedItem===word.id?'dragging':''}"
+      draggable="true"
+      data-id="${word.id}"
+      onmouseenter="cvtHoverWord('${word.id}')"
+      onmouseleave="cvtUnhoverWord()">
+      ${word.text}
+      <button class="gesture-word-delete-btn" onclick="cvtDeleteWord('${word.id}')">x</button>
+    </span>
+    ${index < cvtTranscript.length-1 ? ' ' : ''}
+  `).join('');
+
+  container.querySelectorAll('.gesture-word-item').forEach(el => {
+    el.addEventListener('dragstart', e => {
+      cvtDraggedItem = el.dataset.id;
+      e.dataTransfer.effectAllowed = 'move';
+    });
+    el.addEventListener('dragover', e => {
+      e.preventDefault(); e.dataTransfer.dropEffect='move';
+      const targetId = el.dataset.id;
+      if (cvtDraggedItem && cvtDraggedItem !== targetId) {
+        const di = cvtTranscript.findIndex(w=>w.id===cvtDraggedItem);
+        const ti = cvtTranscript.findIndex(w=>w.id===targetId);
+        if (di!==-1 && ti!==-1) {
+          const newT = [...cvtTranscript];
+          const [removed] = newT.splice(di,1); newT.splice(ti,0,removed);
+          cvtTranscript = newT; renderSentenceBuilder();
+        }
+      }
+    });
+    el.addEventListener('dragend', () => { cvtDraggedItem=null; renderSentenceBuilder(); });
+  });
+}
+
+window.cvtDeleteWord = function(id) {
+  cvtTranscript = cvtTranscript.filter(w=>w.id!==id);
+  renderSentenceBuilder();
+};
+window.cvtHoverWord = function(id) { cvtHoveredWord=id; };
+window.cvtUnhoverWord = function() { cvtHoveredWord=null; };
+
+function renderCompletedSentences() {
+  const empty = document.getElementById('transcriptEmpty');
+  const container = document.getElementById('completedSentencesContainer');
+  if (!cvtCompletedSentences.length) { empty.style.display=''; container.innerHTML=''; return; }
+  empty.style.display='none';
+  container.innerHTML = cvtCompletedSentences.map((s,i) => `
+    <div class="sentence-item"><span class="sentence-num">${i+1}.</span>${s}</div>
+  `).join('');
+}
+```
+
+## Installation & Running
+
+### Backend Setup:
+
+```bash
 npm install express cors fs path
 node server.js
-Frontend:
-Open index.html in a web browser. The backend must be running on http://localhost:3000 for full functionality.
+```
 
-Key Features Implemented
-✅ Backend API for gesture dataset management
-✅ Real-time hand & pose landmark detection
-✅ KNN gesture recognition algorithm
-✅ Multi-language translation support
-✅ Text-to-speech synthesis
-✅ Grammar correction
-✅ Drag-and-drop sentence builder
-✅ Dark/Light mode toggle
-✅ Dataset import/export with conflict resolution
-✅ Responsive design for desktop & mobile
+### Frontend:
+
+Open `index.html` in a web browser. The backend must be running on `http://localhost:3000` for full functionality.
+
+## Key Features Implemented
+
+✅ Backend API for gesture dataset management  
+✅ Real-time hand & pose landmark detection  
+✅ KNN gesture recognition algorithm  
+✅ Multi-language translation support  
+✅ Text-to-speech synthesis  
+✅ Grammar correction  
+✅ Drag-and-drop sentence builder  
+✅ Dark/Light mode toggle  
+✅ Dataset import/export with conflict resolution  
+✅ Responsive design for desktop & mobile  
 
 Complete! Ready to use. 🚀
